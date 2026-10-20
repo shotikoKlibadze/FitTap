@@ -6,6 +6,11 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		090334A03061116100BE2F9D /* NavigatorUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0903349F3061116100BE2F9D /* NavigatorUI */; };
+		090334A3306112F700BE2F9D /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = 090334A2306112F700BE2F9D /* FactoryKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		09C2B55B305DC8A90037C62D /* FitTap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitTap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -22,6 +27,8 @@
 		09C2B558305DC8A90037C62D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				090334A3306112F700BE2F9D /* FactoryKit in Frameworks */,
+				090334A03061116100BE2F9D /* NavigatorUI in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -60,6 +67,10 @@
 				09C2B55D305DC8A90037C62D /* FitTap */,
 			);
 			name = FitTap;
+			packageProductDependencies = (
+				0903349F3061116100BE2F9D /* NavigatorUI */,
+				090334A2306112F700BE2F9D /* FactoryKit */,
+			);
 			productName = FitTap;
 			productReference = 09C2B55B305DC8A90037C62D /* FitTap.app */;
 			productType = "com.apple.product-type.application";
@@ -88,6 +99,10 @@
 			);
 			mainGroup = 09C2B552305DC8A90037C62D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0903349E3061116100BE2F9D /* XCRemoteSwiftPackageReference "Navigator" */,
+				090334A1306112F700BE2F9D /* XCRemoteSwiftPackageReference "Factory" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 09C2B55C305DC8A90037C62D /* Products */;
 			projectDirPath = "";
@@ -320,6 +335,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0903349E3061116100BE2F9D /* XCRemoteSwiftPackageReference "Navigator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/shotikoKlibadze/Navigator";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.4;
+			};
+		};
+		090334A1306112F700BE2F9D /* XCRemoteSwiftPackageReference "Factory" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/shotikoKlibadze/Factory";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0903349F3061116100BE2F9D /* NavigatorUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0903349E3061116100BE2F9D /* XCRemoteSwiftPackageReference "Navigator" */;
+			productName = NavigatorUI;
+		};
+		090334A2306112F700BE2F9D /* FactoryKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 090334A1306112F700BE2F9D /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = FactoryKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 09C2B553305DC8A90037C62D /* Project object */;
 	validationLevel = 1;
