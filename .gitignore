@@ -6,7 +6,7 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
 
 # Volume root files
 .DocumentRevisions-V100
@@ -63,3 +63,7 @@ playground.xcworkspace
 
 # Swift Package Manager
 # Package.resolved
+
+### Claude Code
+# Personal settings overrides — shared config lives in .claude/settings.json
+.claude/settings.local.json

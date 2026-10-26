@@ -1,0 +1,24 @@
+{
+  "originHash" : "1bfd55dc05cfc05ebecb1ffd41cf61700538e4c6a81419c0dc64ff6959e7cc91",
+  "pins" : [
+    {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/shotikoKlibadze/Factory",
+      "state" : {
+        "revision" : "b02457db582b6773c578f407e43350a15bf79cb6",
+        "version" : "3.4.0"
+      }
+    },
+    {
+      "identity" : "navigator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/shotikoKlibadze/Navigator",
+      "state" : {
+        "revision" : "2bf342cf1d1056af76ad4bfcfebf5639d481c326",
+        "version" : "2.1.4"
+      }
+    }
+  ],
+  "version" : 3
+}

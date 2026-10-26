@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		090334A03061116100BE2F9D /* NavigatorUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0903349F3061116100BE2F9D /* NavigatorUI */; };
 		090334A3306112F700BE2F9D /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = 090334A2306112F700BE2F9D /* FactoryKit */; };
+		0903350C3061200000BE2F9D /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 0903350B3061200000BE2F9D /* DesignSystem */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				090334A3306112F700BE2F9D /* FactoryKit in Frameworks */,
+				0903350C3061200000BE2F9D /* DesignSystem in Frameworks */,
 				090334A03061116100BE2F9D /* NavigatorUI in Frameworks */,
 			);
 		};
@@ -70,6 +72,7 @@
 			packageProductDependencies = (
 				0903349F3061116100BE2F9D /* NavigatorUI */,
 				090334A2306112F700BE2F9D /* FactoryKit */,
+				0903350B3061200000BE2F9D /* DesignSystem */,
 			);
 			productName = FitTap;
 			productReference = 09C2B55B305DC8A90037C62D /* FitTap.app */;
@@ -83,7 +86,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2700;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					09C2B55A305DC8A90037C62D = {
 						CreatedOnToolsVersion = 27.0;
@@ -102,6 +105,7 @@
 			packageReferences = (
 				0903349E3061116100BE2F9D /* XCRemoteSwiftPackageReference "Navigator" */,
 				090334A1306112F700BE2F9D /* XCRemoteSwiftPackageReference "Factory" */,
+				0903350A3061200000BE2F9D /* XCLocalSwiftPackageReference "Packages/DesignSystem" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 09C2B55C305DC8A90037C62D /* Products */;
@@ -189,6 +193,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -246,6 +251,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -266,6 +272,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -298,6 +305,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -336,6 +344,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		0903350A3061200000BE2F9D /* XCLocalSwiftPackageReference "Packages/DesignSystem" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/DesignSystem;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		0903349E3061116100BE2F9D /* XCRemoteSwiftPackageReference "Navigator" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -365,6 +380,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 090334A1306112F700BE2F9D /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = FactoryKit;
+		};
+		0903350B3061200000BE2F9D /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0903350A3061200000BE2F9D /* XCLocalSwiftPackageReference "Packages/DesignSystem" */;
+			productName = DesignSystem;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

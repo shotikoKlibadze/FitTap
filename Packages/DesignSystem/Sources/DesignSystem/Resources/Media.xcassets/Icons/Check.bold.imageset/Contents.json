@@ -1,0 +1,16 @@
+{
+  "images": [
+    {
+      "filename": "check-bold.svg",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "version": 1,
+    "author": "sync-phosphor-icons.mjs"
+  },
+  "properties": {
+    "preserves-vector-representation": true,
+    "template-rendering-intent": "template"
+  }
+}

@@ -52,6 +52,8 @@ Most existing apps fail this user: too many fields, too many metrics, too much o
 - **Nutrition & diet** — food and diet plans folded into the same logging model.
 - **Apple Watch + Apple Health integration.**
 
+Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/FeaturePlanning.md) for the app and [AIFeaturePlanning.md](Planning/AIFeaturePlanning.md) for AI features. Check them before building or proposing a feature; they are plans, not commitments, and this document still wins on scope.
+
 ### Explicitly not building
 
 - Anything that turns FitTap into a coaching platform, a social network, or a data console.
@@ -59,5 +61,14 @@ Most existing apps fail this user: too many fields, too many metrics, too much o
 
 ## 6. Engineering workflow
 
-- Build: use the iOS Simulator MCP server's `build` tool — never shell `xcodebuild`.
+- Compile check: `XcodeRefreshCodeIssuesInFile` on each file you edited (open the workspace once per session with `XcodeOpenWorkspace` first) — never shell `xcodebuild`. Run a full `BuildProject` only when the user asks, or when the change can't be checked per file (project or package wiring).
+- Engineering rules live in `.claude/skills/` — they load automatically when relevant.
+- Platform: **iOS 27+ only** (overrides any lower baseline elsewhere). Use iOS 27 APIs freely, including Foundation Models with the Private Cloud Compute model; no `@available` checks or fallbacks.
+- Persistence: **SwiftData**.
+- **Stage, don't commit.** After making code changes, stage them with `git add` — but never commit unless explicitly told to.
+- **Done = it compiles.** After writing code, the only verification is the per-file compile check above — nothing more: no project builds, no preview renders, no launching or simulator checks, no screenshots, no tests, unless asked. The user checks the look and behavior.
+- **No tests unless asked** — don't write or run tests unprompted (see README.md).
+- **Answer short.** Keep answers as concise as possible — a few sentences or small bullets, a tiny example only when it helps. Expand only when asked ("expand on this").
+- **Rule-making is system-building.** When asked to "add that to the rules" (or to a skill, or anywhere in the agent setup), don't just transcribe it. First, propose the strongest mechanism for the job — plain rule, skill, slash command, hook, MCP tool, subagent, or eval — and say when a more advanced one fits better ("this is a good place for a hook"). Second, write it to be reusable in other projects: generic phrasing over FitTap-specific wherever FitTap's needs allow. FitTap objectives come first, but every rule, skill, and hook is also a candidate component of the reusable agentic system (README.md).
+- **The agent setup is itself a deliverable.** The overall goal behind this project is in [README.md](README.md) — FitTap doubles as a reusable agentic-workflow system, so process quality counts as much as the app. A deviation from a skill is a process defect: address it without excuses, find why it happened, and fix the skill or process so it cannot recur.
 
