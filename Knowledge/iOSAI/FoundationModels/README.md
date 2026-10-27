@@ -313,4 +313,4 @@ Apple frames the problems these APIs solve as **context management** (keeping lo
 - Exact `prewarm()` signature.
 - The skill API in the utilities package: what it loads and how.
 - The Evaluations framework API.
-- Not yet ingested: "Building with Private Cloud Compute", "LLM search using Core Spotlight", "What's new in image understanding", "Prompt design & safety", the Evaluations framework sessions, "debugging and profiling".
+- Not yet ingested: "Building with Private Cloud Compute", "LLM search using Core Spotlight", "Prompt design & safety", the Evaluations framework sessions, "debugging and profiling". Image input, image tool arguments and the Vision tools are covered in `../ImageUnderstanding/`.

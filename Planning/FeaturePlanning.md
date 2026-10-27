@@ -11,8 +11,9 @@ Every feature is judged by the tap test: fewer taps than the competitor, or it i
 - **Home:** today card · streak and consistency · last session glance · one nudge slot
 - **Statistics:** per-exercise progress · auto PRs · volume and frequency per muscle · cardio trends · calendar · optional body weight log
 - **Watch:** wrist logging · rest timer haptics · HKWorkoutSession recording · live sync · auto start/stop detection
-- **HealthKit:** read workout metrics · write workouts · read body weight · permission on first use
-- **Later:** nutrition · widgets and Live Activities · Shortcuts / App Intents · iCloud sync · CSV export · plate calculator
+- **HealthKit:** read workout metrics · write workouts · sets as workout activities · read body weight · permission on first use
+- **Siri / App Intents:** core intents with App Shortcut phrases · indexed entities · `system.search` / `system.open` schemas · on-screen annotations · intent donations · dialog variants · intents testing
+- **Later:** nutrition · widgets and Live Activities · iCloud sync · CSV export · plate calculator
 
 ---
 
@@ -86,6 +87,7 @@ The Watch logs; the phone thinks. The companion app mirrors the current session.
 |---|---|---|
 | **Read workout metrics** | HR samples, HR zones, active calories, distance, duration from the Watch session, attached to the FitTap session. | Raw material for session interpretation and cardio stats. |
 | **Write workouts** | Strength and cardio sessions written to HealthKit with exercise details where the API allows. | Appears in Fitness and other apps. |
+| **Sets as workout activities** | Each logged set becomes an `HKWorkoutActivity` (same type as the workout) inside the session's `HKWorkout`, bounded by `SetEntry.loggedAt`; cardio blocks the same via `CardioEntry.startedAt` + `duration`. Exercise, weight and reps ride in activity metadata. Gaps between activities are the rest periods. Per-set and per-exercise HR come back free via `activity.statistics(for:)`. The link is `WorkoutSession.healthKitWorkoutID`. FitTap's store stays canonical; HealthKit is a projection, never a source for sets. ⚠️ Sets last seconds; per-set statistics need validation against HR sampling cadence — fall back to `HKWorkoutEvent` markers per exercise if too sparse. | The intervals pattern from [Knowledge/iOSHealthKit/README.md §2](../Knowledge/iOSHealthKit/README.md): per-set effort and rest with zero extra taps, and a well-formed workout for Fitness and other apps. |
 | **Read body weight** | For the optional body weight log and for bodyweight-exercise load. | No manual entry. |
 | **Permissions UX** | Asked on first relevant use, not at launch; the app works fully without HealthKit. | Design for denial. |
 | **Import native Workout app sessions** | Reads `HKWorkout`s recorded by Apple's Workout app and matches them to FitTap sessions by time overlap. No FitTap Watch app needed. | Watch data on day one, before the Watch app exists. |
@@ -101,13 +103,28 @@ The Watch logs; the phone thinks. The companion app mirrors the current session.
 - **Resting energy is a formula, not a measurement:** computed from the Health profile (age, sex, height, weight), written by the iPhone even with no Watch. Never build insights on it.
 - **Read denial is invisible:** HealthKit never reveals whether read access was denied, so "no data" and "no permission" must render identically.
 
-## 7. Later / parked
+## 7. Siri, App Intents and Shortcuts
+
+Every logging action becomes reachable without opening the app: Siri, Shortcuts, Spotlight, the Action button on Watch and iPhone, widgets. One intent layer feeds all of them. Reference: [Knowledge/iOSAI/GeneralKnowledge/AppleIntelligenceGroupLab.md](../Knowledge/iOSAI/GeneralKnowledge/AppleIntelligenceGroupLab.md).
+
+| Feature | What it does | Why |
+|---|---|---|
+| **Core intents** | `StartWorkout(template)`, `LogSet(exercise, weight, reps)`, `RepeatLastSet`, `EndWorkout`, `StartRestTimer`. Each has an App Shortcut phrase ("Log a set", "Start push day"). | The zero-tap path: Action button, Siri, a Shortcut tile. Same intents drive the Watch complication and widgets. |
+| **Entities** | `WorkoutTemplate`, `Exercise`, `WorkoutSession` as `AppEntity`, donated to the semantic index via `IndexedEntity`. | Siri can answer "when did I last do deadlifts?" and "how many workouts this week?" from indexed content, and open a session from Spotlight. |
+| **Schemas** | No fitness domain exists, so adopt the generic `system.search` and `system.open`: Siri routes "find my leg day" into FitTap's search and opens the template. Timer schema for the rest timer. | Schemas are the only route into the new Siri AI; Apple supplies the phrases, confirmations and localization. |
+| **On-screen context** | View annotations on the current session screen with the session and exercise entities. | "Log this again", "add 2.5 kilos" work on what's visible, no navigation. |
+| **Intent donations** | Donate `LogSet` and `StartWorkout` as the user performs them in-app. | Siri learns habits: "start my workout" picks the template you use on Tuesdays. |
+| **Dialog variants** | Full vs supporting dialog on each intent. | Verbose on AirPods and Watch (no screen), terse with a snippet on iPhone. |
+| **Testing** | The App Intents testing framework in CI for intents, entity queries and Spotlight indexing. | The only way to keep Siri behaviour from silently breaking between OS betas. |
+
+Not available on HomePod; existing App Shortcuts still work there. Spotlight retrieval is sandboxed to FitTap, so Siri never sees other apps' data, and vice versa.
+
+## 8. Later / parked
 
 | Feature | Notes |
 |---|---|
 | Nutrition & diet logging | Planned in the constitution; same logging model, same "tap the common thing" principle. Not before v1 logging is solid. |
 | Widgets and Live Activities | Rest timer and today's workout. Cheap once the data model is stable. |
-| Shortcuts / App Intents | "Log a set", "start push day". Also what Siri and the Watch action button use. |
 | iCloud sync | SwiftData + CloudKit. Required before Watch and iPhone can share data reliably. |
 | Export | CSV of all sessions. The user owns their data. |
 | Plate calculator | Tap a weight to see plates per side. |

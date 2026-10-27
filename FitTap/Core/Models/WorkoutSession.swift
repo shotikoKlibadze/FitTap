@@ -11,6 +11,11 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
     var startedAt: Date?
     var endedAt: Date?
     var notes: String?
+    /// `HKWorkout.uuid` of the workout this session was saved as (or matched
+    /// to) in HealthKit. Nil until synced. Used to avoid duplicate writes and
+    /// to read HR, calories and zones back; sets are never reconstructed from
+    /// HealthKit. See Knowledge/iOSHealthKit/README.md §2.
+    var healthKitWorkoutID: UUID?
 
     init(
         id: UUID = UUID(),
@@ -19,6 +24,7 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
         startedAt: Date? = nil,
         endedAt: Date? = nil,
         notes: String? = nil,
+        healthKitWorkoutID: UUID? = nil,
     ) {
         self.id = id
         self.workout = workout
@@ -26,6 +32,7 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.notes = notes
+        self.healthKitWorkoutID = healthKitWorkoutID
     }
 
     /// Done once finished; missed when the day passed without finishing;

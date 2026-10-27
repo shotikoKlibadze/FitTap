@@ -1,6 +1,6 @@
 # AI feature plans
 
-Candidate AI features for FitTap and the Apple technology each one maps to. A working list, not a commitment. Scope and priorities still answer to [CLAUDE.md](../CLAUDE.md). Technology details live in [AILibrary/](../AILibrary/).
+Candidate AI features for FitTap and the Apple technology each one maps to. A working list, not a commitment. Scope and priorities still answer to [CLAUDE.md](../CLAUDE.md). Technology details live in [Knowledge/iOSAI/](../Knowledge/iOSAI/).
 
 **Governing rule:** numbers and decisions come from Swift rules (later, a small Core ML/Core AI model). The LLM phrases, interprets and extracts. It never decides a weight, a rep count or a plan on its own.
 
