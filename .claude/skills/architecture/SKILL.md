@@ -13,6 +13,8 @@ SomeScreenModel   @Observable logic — state, services, API calls, destination
 SomeView          dumb view — accepts properties, propagates callbacks up
 ```
 
+Full worked examples of all three: [reference.md](reference.md).
+
 ## Folder layout
 
 Each screen is a feature folder holding one file per type, plus the destination enum when the screen navigates, plus a `Subviews/` folder for the view's building blocks and a `Helpers/` folder for its supporting types:
@@ -52,6 +54,8 @@ ScrollView {
 
 ## The Screen
 
+→ example: [reference.md §1](reference.md#1-a-complete-screen)
+
 The Screen is the smart layer and the only one that composes the other two:
 
 - Owns the screen model: `@State private var screenModel = SomeScreenModel()`.
@@ -59,40 +63,11 @@ The Screen is the smart layer and the only one that composes the other two:
 - **All navigation and presentation go through the screen's destination enum** (see the `navigation` skill): the ScreenModel sets `destination` in its intent methods, and the Screen binds it once with `.navigate(to:)`. Pushes, sheets, and covers are all destination cases — raw `.sheet` / `.fullScreenCover` / `NavigationLink` are banned in feature code. Views never present anything.
 - **Imperative navigation** (pop, dismiss, checkpoint returns) lives in the Screen via `@Environment(\.navigator)`.
 - Lifecycle wiring (`.task`, `.onAppear`, `.onChange`) lives here.
-- **The toolbar is attached here, never in the View.** Every Screen ends with `.appToolbar(title:onBack:)` (see the `design-system` skill): a title and a back button are the default on every screen, and `onBack` routes to the navigator. Drop the back button or the title only when explicitly told to. Views never draw header rows, titles, cancel/back buttons, or call `.toolbar` / `.appToolbar`.
-
-```swift
-        .navigate(to: $screenModel.destination)
-        .appToolbar(title: "New Workout", onBack: handleBack)
-    }
-
-    private func handleBack() {
-        if navigator.dismiss() { return }
-        navigator.pop()
-    }
-```
-
-```swift
-struct SomeScreen: View {
-    @State private var screenModel = SomeScreenModel()
-
-    var body: some View {
-        SomeView(
-            title: screenModel.title,
-            items: screenModel.items,
-            isLoading: screenModel.isLoading,
-            onTapItem: screenModel.didTapItem,   // sets destination → pushes DetailScreen
-            onTapAdd: screenModel.didTapAdd,     // sets destination → presents editor sheet
-            onDelete: screenModel.delete,        // service/API work
-            onRefresh: { await screenModel.refresh() },
-        )
-        .task { await screenModel.load() }
-        .navigate(to: $screenModel.destination)  // one binding covers push, sheet, and cover
-    }
-}
-```
+- **The toolbar is attached here, never in the View.** Every Screen ends with `.appToolbar(title:onBack:)` (see the `design-system` skill): a title and a back button are the default on every screen, and `onBack` routes to the navigator (dismiss, else pop). Drop the back button or the title only when explicitly told to. Views never draw header rows, titles, cancel/back buttons, or call `.toolbar` / `.appToolbar`. *Enforced by the `check-toolbar-on-screen.sh` hook.*
 
 ## The ScreenModel
+
+→ example: [reference.md §2](reference.md#2-a-complete-screenmodel)
 
 - `@MainActor @Observable final class`.
 - Owns screen state and everything behind it: services, API calls, persistence.
@@ -101,27 +76,9 @@ struct SomeScreen: View {
 - Externally-mutated state is `var` (for bindings); everything else `private(set)`.
 - Never builds or references views.
 
-```swift
-@MainActor
-@Observable
-final class SomeScreenModel {
-    var destination: SomeScreenDestination?
-
-    private(set) var items: [Item] = []
-    private(set) var isLoading = false
-
-    var title: String { "\(items.count) items" }
-
-    func didTapItem(_ item: Item) { destination = .detail(item) }
-    func didTapAdd() { destination = .editor }
-
-    func load() async { ... }
-    func refresh() async { ... }
-    func delete(_ item: Item) { ... }
-}
-```
-
 ## The View
+
+→ example: [reference.md §3](reference.md#3-a-complete-view-with-its-previews)
 
 The View is dumb — a pure function of its inputs:
 
@@ -130,30 +87,7 @@ The View is dumb — a pure function of its inputs:
 - No navigation, no sheets, no service or API access, no domain formatting.
 - Local `@State` only for pure UI concerns (scroll position, focus, gesture state).
 - Subviews are extracted as separate dumb `struct`s (never `@ViewBuilder` methods) and follow the same rules.
-- Carries a `#Preview` with literal values — dumbness is what makes previews free (conventions in the `previews` skill).
-
-```swift
-struct SomeView: View {
-    let title: String
-    let items: [Item]
-    let isLoading: Bool
-    let onTapItem: (Item) -> Void
-    let onTapAdd: () -> Void
-    let onDelete: (Item) -> Void
-    let onRefresh: () async -> Void
-
-    var body: some View { ... }
-}
-
-#Preview {
-    SomeView(
-        title: "3 items",
-        items: [.sample],
-        isLoading: false,
-        onTapItem: { _ in }, onTapAdd: {}, onDelete: { _ in }, onRefresh: {},
-    )
-}
-```
+- Carries previews with literal values — dumbness is what makes previews free (conventions in the `previews` skill).
 
 ## Rules recap
 

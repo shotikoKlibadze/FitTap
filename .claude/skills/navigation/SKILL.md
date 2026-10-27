@@ -12,49 +12,19 @@ This layers on the `architecture` skill's Screen / ScreenModel / View split:
 - **ScreenModel** — owns `var destination: SomeScreenDestination?` and sets it in intent methods. Never touches the navigator.
 - **Screen** — binds the destination with `.navigate(to:)`, holds `@Environment(\.navigator)` for imperative calls (pop, dismiss, checkpoint returns).
 
+Full code examples: [reference.md](reference.md).
+
 ## Stack shape
 
-`ManagedNavigationStack` (NavigatorUI's replacement for `NavigationStack` — never use the raw one) sits at the root of each tab / feature flow:
+→ [reference.md §1](reference.md#1-stack-shape)
 
-```swift
-TabView {
-    Tab(value: .home) { ManagedNavigationStack { HomeScreen() } }
-    Tab(value: .settings) { ManagedNavigationStack { SettingsScreen() } }
-}
-```
-
-No `.navigationDestination(for:)` registrations are needed — the managed stack handles rendering.
+`ManagedNavigationStack` (NavigatorUI's replacement for `NavigationStack` — never use the raw one) sits at the root of each tab / feature flow. No `.navigationDestination(for:)` registrations are needed — the managed stack handles rendering.
 
 ## Destinations
 
-Every screen that navigates gets a `<Name>ScreenDestination` enum (e.g. `HomeScreenDestination`), a separate file in the screen's folder, conforming to `NavigationDestination`. Cases carry plain data; `body` constructs the child **Screen**; `method` declares how each case presents:
+→ [reference.md §2](reference.md#2-a-destination-enum)
 
-```swift
-import NavigatorUI
-import SwiftUI
-
-enum SomeScreenDestination: NavigationDestination {
-    case detail(Item)           // pushed
-    case editor(Item)           // its own modal flow
-    case picker                 // small modal choice
-
-    var body: some View {
-        switch self {
-        case .detail(let item): DetailScreen(item: item)
-        case .editor(let item): EditorScreen(item: item)
-        case .picker:           PickerScreen()
-        }
-    }
-
-    var method: NavigationMethod {
-        switch self {
-        case .detail: .push
-        case .editor: .managedCover
-        case .picker: .managedSheet
-        }
-    }
-}
-```
+Every screen that navigates gets a `<Name>ScreenDestination` enum (e.g. `HomeScreenDestination`), a separate file in the screen's folder, conforming to `NavigationDestination`. Cases carry plain data; `body` constructs the child **Screen**; `method` declares how each case presents.
 
 ### Choosing the method
 
@@ -71,115 +41,37 @@ Rule of thumb: "going to X" → push, "picking X" → sheet, "switching to X mod
 
 ### Hashable identity
 
-`NavigationDestination` is `Hashable`. Cases carrying immutable values use synthesized conformance. A case carrying a **mutable model** (an edit screen) must hash by a stable kind, or mutating the model re-presents the sheet mid-edit (keyboard drop, flicker):
+→ [reference.md §3](reference.md#3-hashing-a-mutable-model-case-by-kind)
 
-```swift
-extension SomeScreenDestination {
-    static func == (l: Self, r: Self) -> Bool { l.kind == r.kind }
-    func hash(into h: inout Hasher) { h.combine(kind) }
-    private var kind: String {
-        switch self { case .editor: "editor" /* … */ }
-    }
-}
-```
+`NavigationDestination` is `Hashable`. Cases carrying immutable values use synthesized conformance. A case carrying a **mutable model** (an edit screen) must hash by a stable kind, or mutating the model re-presents the sheet mid-edit (keyboard drop, flicker).
 
 ## ScreenModel drives, Screen binds
 
-The screen model owns the destination as plain optional state — setting it presents, nil tears down:
+→ [reference.md §4](reference.md#4-screenmodel-drives-screen-binds)
 
-```swift
-@MainActor
-@Observable
-final class SomeScreenModel {
-    var destination: SomeScreenDestination?
-
-    func didTapItem(_ item: Item) {
-        destination = .detail(item)
-    }
-    func didTapEdit(_ item: Item) {
-        destination = .editor(item)
-    }
-}
-```
-
-The Screen wires it with one modifier:
-
-```swift
-struct SomeScreen: View {
-    @State private var screenModel = SomeScreenModel()
-
-    var body: some View {
-        SomeView(
-            items: screenModel.items,
-            onTapItem: screenModel.didTapItem,
-            onTapEdit: screenModel.didTapEdit,
-        )
-        .navigate(to: $screenModel.destination)   // or .navigate(to: Bindable(screenModel).destination)
-    }
-}
-```
-
-The screen model never imports NavigatorUI's navigator and never sees a view — it only holds the enum. This keeps it testable: asserting navigation is asserting `screenModel.destination`.
+The screen model owns the destination as plain optional state — setting it presents, `nil` tears down. The Screen wires it with one `.navigate(to: $screenModel.destination)`. The screen model never imports NavigatorUI's navigator and never sees a view — it only holds the enum. This keeps it testable: asserting navigation is asserting `screenModel.destination`.
 
 ## Dismiss and pop
 
-Imperative navigation lives in the **Screen** via the environment navigator:
+→ [reference.md §5](reference.md#5-navigator-calls)
 
-```swift
-@Environment(\.navigator) private var navigator
-
-navigator.pop()            // back one pushed screen
-navigator.pop(last: 2)     // back two
-navigator.popToRoot()      // clear this stack
-navigator.dismiss()        // close the presented sheet/cover — returns Bool
-```
+Imperative navigation lives in the **Screen** via `@Environment(\.navigator)`: `pop()`, `pop(last:)`, `popToRoot()`, `dismiss()`.
 
 - **Never use `@Environment(\.dismiss)`** — always the navigator, so dismissal participates in the managed context.
-- `dismiss()` returns whether anything was dismissed. A screen that can arrive both pushed and presented uses the fallback chain:
-
-```swift
-private func handleClose() {
-    if navigator.dismiss() { return }   // was presented → closed
-    navigator.pop()                     // was pushed → go back
-}
-```
-
+- `dismiss()` returns whether anything was dismissed. A screen that can arrive both pushed and presented uses the fallback chain: dismiss, else pop.
 - A `.managedCover` has no swipe-down gesture — it must render an explicit close affordance (toolbar close button calling `navigator.dismiss()`).
 - Unsaved-data guard: `.interactiveDismissDisabled(hasUnsavedChanges)` on the presented content plus an explicit close button that confirms.
 
 ## Checkpoints — returning values to a parent
 
-When a child flow must hand a value back (an editor returning its edit), use checkpoints instead of closures threaded through destinations.
+→ [reference.md §6](reference.md#6-checkpoints--returning-a-value-to-a-parent)
 
-**1. Declare** the checkpoints next to the parent screen, typed by the value they return:
+When a child flow must hand a value back (an editor returning its edit), use checkpoints instead of closures threaded through destinations:
+1. **Declare** the checkpoints next to the parent screen, typed by the value they return (`NavigationCheckpoints`).
+2. **The parent Screen** registers `.navigationCheckpoint(...) { value in … }` and forwards the value to its screen model.
+3. **The child Screen** calls `navigator.returnToCheckpoint(_, value:)` on save.
 
-```swift
-struct SomeCheckpoints: NavigationCheckpoints {
-    static var edit: NavigationCheckpoint<ItemEdit> { checkpoint() }
-    static var pickedDate: NavigationCheckpoint<Date> { checkpoint() }
-}
-```
-
-**2. The parent Screen** registers handlers — receive the value, forward it to the screen model:
-
-```swift
-SomeView(...)
-    .navigate(to: $screenModel.destination)
-    .navigationCheckpoint(SomeCheckpoints.edit) { value in
-        screenModel.applyEdit(value)
-    }
-```
-
-**3. The child Screen** returns through the checkpoint on save:
-
-```swift
-private func handleSave() {
-    // returnToCheckpoint pops back to the parent itself; never add dismiss()/pop() after.
-    navigator.returnToCheckpoint(SomeCheckpoints.edit, value: screenModel.currentEdit)
-}
-```
-
-`returnToCheckpoint` unwinds however many pushes/presents sit between child and parent. The returned payload is a plain `Hashable` value type (`struct ItemEdit: Hashable, Sendable`), never a screen model.
+`returnToCheckpoint` unwinds however many pushes/presents sit between child and parent — never add `dismiss()`/`pop()` after it. The returned payload is a plain `Hashable` value type (`struct ItemEdit: Hashable, Sendable`), never a screen model.
 
 ## Deep linking
 

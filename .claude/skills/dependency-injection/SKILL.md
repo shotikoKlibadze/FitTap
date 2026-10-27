@@ -7,41 +7,15 @@ description: Use when creating or consuming services, API clients, stores, or ma
 
 All shared dependencies — API/service clients, stores, managers — are registered in and resolved through [Factory](https://github.com/hmlongco/Factory) (SPM: `https://github.com/hmlongco/Factory`; `import FactoryKit` in Factory 3+, `import Factory` in older setups — match what the project already imports). Screen models consume registered dependencies; they never construct clients, stores, or services themselves, and nothing is reached through ad-hoc `.shared` globals.
 
+Full code examples: [reference.md](reference.md).
+
 This layers on the `architecture` skill: injection lives in **ScreenModels, stores, and managers** — never in a dumb View, and Screens only in rare app-wiring cases.
 
 ## One registration surface
 
 Every registration lives in a single file: `Core/Dependencies/Container+Dependencies.swift`, as computed properties on `Container`. No feature-local registrations — a new shared dependency is added here and treated as a cross-cutting change.
 
-```swift
-import FactoryKit
-
-extension Container {
-    /// One client for the process lifetime.
-    @MainActor
-    var apiClient: Factory<APIClient> {
-        self {
-            MainActor.assumeIsolated {
-                APIClient(baseURL: AppEnvironment.current.baseURL)
-            }
-        }
-        .singleton
-    }
-
-    @MainActor
-    var workoutStore: Factory<any WorkoutStore> {
-        self {
-            MainActor.assumeIsolated { () -> any WorkoutStore in
-                #if DEBUG
-                    if AppDataSource.usesMocks { return MockWorkoutStore() }
-                #endif
-                return LiveWorkoutStore(client: self.apiClient())
-            }
-        }
-        .singleton
-    }
-}
-```
+→ [reference.md §1](reference.md#1-registrations-in-coredependenciescontainerdependenciesswift)
 
 Registration rules:
 
@@ -53,19 +27,7 @@ Registration rules:
 
 ## Consuming — `@Injected` in screen models
 
-```swift
-@MainActor
-@Observable
-final class SomeScreenModel {
-    @ObservationIgnored
-    @Injected(\.dateManager) private var dateManager
-
-    @ObservationIgnored
-    @DynamicInjected(\.workoutStore) private var workoutStore
-
-    // screen state and behavior only
-}
-```
+→ [reference.md §2](reference.md#2-consuming-in-a-screen-model)
 
 - **`@ObservationIgnored` is mandatory** on injected properties inside an `@Observable` class — dependencies are not observable state.
 - Injection belongs in screen models, stores, managers, and other infrastructure owners. **Never in a dumb View**; a View gets values and callbacks per the `architecture` skill.
@@ -80,16 +42,7 @@ final class SomeScreenModel {
 
 User-scoped stores hold one user's data. On sign-out, drop the cached instances without touching registrations:
 
-```swift
-extension Container {
-    @MainActor
-    func resetUserScopedStores() {
-        workoutStore.reset(.scope)
-        profileStore.reset(.scope)
-        // infrastructure that outlives a session (apiClient, authManager) is NOT reset
-    }
-}
-```
+→ [reference.md §3](reference.md#3-scope-reset-on-sign-out)
 
 `reset(.scope)` clears the cached instance and leaves the registration (and any test override) alone. This only works end-to-end because long-lived owners hold these stores with `@DynamicInjected` — the next access resolves a fresh store for the next user.
 
@@ -97,10 +50,7 @@ extension Container {
 
 Override the same registration the production code reads; always reset so state can't leak into neighboring tests:
 
-```swift
-Container.shared.workoutStore.register { MockWorkoutStore() }
-defer { Container.shared.reset() }
-```
+→ [reference.md §4](reference.md#4-test-or-preview-override) — `.register { }` then `defer { Container.shared.reset() }`.
 
 Keep overrides local to the test or the focused `#Preview` host. Never mutate registrations from production feature code.
 

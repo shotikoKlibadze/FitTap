@@ -7,6 +7,8 @@ description: Use when writing ANY view code — screens, subviews, or reusable c
 
 The design system is **mandatory, not optional**. Every color, font, and reusable piece of UI anywhere in the app comes from the `DesignSystem` package (or, for UI that needs app models, `SharedUI/`) — this is a hard rule with no "just this once" exceptions.
 
+Full code examples: [reference.md](reference.md).
+
 ## Where it lives
 
 The design system is a **local Swift package**, linked to the app target. Files use it with `import DesignSystem`.
@@ -75,60 +77,16 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 ## How components are built
 
 - Dumb, like every view (see the `architecture` skill): `let` properties, bindings, and callbacks. No models, services, or navigation.
-- **The whole visible shape is tappable — hard rule.** Every tappable element (`Button` label, `.onTapGesture` target) declares `.contentShape(...)` matching its visible shape — `Capsule()`, `Circle()`, `RoundedRectangle(...)`, or `Rectangle()` for rows — applied after the frame, before the tap handler. Without it only the glyphs or filled pixels are hittable: a segment, pill, or row whose background is clear (or drawn by a parent) ignores taps on its empty area.
-
-    ```swift
-    Text(title)
-        .frame(maxWidth: .infinity)
-        .frame(height: 44)
-        .contentShape(Capsule())   // the whole pill, not just the letters
-        .onTapGesture { select() }
-    ```
+- **The whole visible shape is tappable — hard rule.** Every tappable element (`Button` label, `.onTapGesture` target) declares `.contentShape(...)` matching its visible shape — `Capsule()`, `Circle()`, `RoundedRectangle(...)`, or `Rectangle()` for rows — applied after the frame, before the tap handler. Without it only the glyphs or filled pixels are hittable: a segment, pill, or row whose background is clear (or drawn by a parent) ignores taps on its empty area. → [reference.md §1](reference.md#1-making-the-whole-shape-tappable)
 - **Selection state is a `@Binding`, not a callback.** A component whose job is choosing a value (segmented toggle, chips, color swatch, picker row) takes `@Binding var selection`, mutates it itself, and the owner observes the change. Callbacks (`onTap`) are only for *action events* — taps that trigger behavior rather than change a selectable value.
 - **Variants are enums, not boolean soup.** `style: .primary` / `.secondary` / `.destructive`, `size: .regular` / `.compact` — never `isPrimary: Bool, isDestructive: Bool, ...`.
 - **States derive from inputs**, not from parallel component copies: disabled via `.disabled(...)` + `@Environment(\.isEnabled)`, loading via an `isLoading` property. One component renders all its states.
 - Tokens only, per the rules above.
-
-```swift
-struct PillButton: View {
-    enum Style { case primary, secondary, destructive }
-
-    let title: String
-    var style: Style = .primary
-    var isLoading = false
-    let action: () -> Void
-
-    var body: some View { ... }
-}
-```
+- Shape of a component: [reference.md §2](reference.md#2-component-shape--variants-as-enums-states-from-inputs).
 
 ## The gallery preview — Light and Dark
 
-A component's previews follow the `previews` skill: **exactly two, `"Light"` and `"Dark"`**, both rendering one private `…PreviewHost`. For a component, that one host *is* the gallery — every variant laid out together, and interactive so states are reached by tapping rather than by extra previews:
-
-```swift
-#if DEBUG
-private struct PillButtonPreviewHost: View {
-    @State private var tapCount = 0
-    @State private var isDisabled = false
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("Taps: \(tapCount)")
-            PillButton(title: "Create workout", disabled: isDisabled) { tapCount += 1 }
-            PillButton(title: "Start Workout", color: .red, disabled: isDisabled) { tapCount += 1 }
-            PillButton(title: isDisabled ? "Enable them" : "Disable them") { isDisabled.toggle() }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(FTColors.background)
-    }
-}
-
-#Preview("Light") { PillButtonPreviewHost().preferredColorScheme(.light) }
-#Preview("Dark") { PillButtonPreviewHost().preferredColorScheme(.dark) }
-#endif
-```
+A component's previews follow the `previews` skill: **exactly two, `"Light"` and `"Dark"`**, both rendering one private `…PreviewHost`. For a component, that one host *is* the gallery — every variant laid out together, and interactive so states are reached by tapping rather than by extra previews. → [reference.md §3](reference.md#3-the-light--dark-gallery-host)
 
 - The host covers every variant and lets you reach every state (enabled/disabled, selected, loading) by interacting; include extreme content (longest realistic label) when the component holds text.
 - Changing a component means updating its host in the same change — a variant that isn't in the host doesn't exist.

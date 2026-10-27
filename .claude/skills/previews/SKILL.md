@@ -7,6 +7,8 @@ description: Use when writing any SwiftUI view, subview, or #Preview block, or a
 
 Every dumb view in the app carries a `#Preview`. The architecture's dumbness guarantee (see the `architecture` skill) is what makes this free: a preview is literal values and empty closures — no containers, no mocks, no setup. If a preview is hard to write, the view isn't dumb enough; fix the view, not the preview.
 
+Full code examples: [reference.md](reference.md).
+
 ## `#if DEBUG` — always
 
 Every `#Preview` block, and every helper that exists only for previews (private preview hosts, swatch lists, fixtures), is wrapped in `#if DEBUG … #endif` so none of it ships. One wrapper per file, placed after the last production type:
@@ -22,36 +24,11 @@ struct WeightStepper: View { … }
 #endif
 ```
 
-A `#Preview` outside `#if DEBUG` is a defect, even in a file with a single preview.
+A `#Preview` outside `#if DEBUG` is a defect, even in a file with a single preview. *Enforced by the `check-previews-in-debug.sh` hook.*
 
 ## Exactly two previews: Light and Dark
 
-Every file with previews has **exactly two**, named `"Light"` and `"Dark"` — never per-state variants ("Empty", "Loading", "Filled"). Both render one **full, interactive** version of the view through a private host that owns the state, so every tap, toggle and selection works live in either mode:
-
-```swift
-#if DEBUG
-private struct WeightStepperPreviewHost: View {
-    @State private var weight: Double = 20
-
-    var body: some View {
-        WeightStepper(weight: $weight, increments: [2.5, 5])
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(FTColors.background)
-    }
-}
-
-#Preview("Light") {
-    WeightStepperPreviewHost()
-        .preferredColorScheme(.light)
-}
-
-#Preview("Dark") {
-    WeightStepperPreviewHost()
-        .preferredColorScheme(.dark)
-}
-#endif
-```
+Every file with previews has **exactly two**, named `"Light"` and `"Dark"` — never per-state variants ("Empty", "Loading", "Filled"). Both render one **full, interactive** version of the view through a private host that owns the state, so every tap, toggle and selection works live in either mode. → [reference.md §1](reference.md#1-the-light--dark-preview-host)
 
 - The host is the one place state lives: `@State` for bindings (never `.constant`), plus small demo state where it makes the preview visibly interactive (a tap counter, a disable toggle). Want another state visible? Make it reachable by interacting with the one full preview, not by adding a variant.
 - Callbacks a preview can't meaningfully perform are empty closures; a preview never does real work.
@@ -59,16 +36,7 @@ private struct WeightStepperPreviewHost: View {
 
 ## Sample data
 
-- Fixture values live as `static` extensions next to the model type, wrapped in `#if DEBUG` so they can't ship:
-
-```swift
-#if DEBUG
-extension Item {
-    static let sample = Item(name: "Bench Press", weight: 60, reps: 8)
-    static let sample2 = Item(name: "5k Run", distance: 5_000, duration: .minutes(26))
-}
-#endif
-```
+- Fixture values live as `static` extensions next to the model type, wrapped in `#if DEBUG` so they can't ship. → [reference.md §2](reference.md#2-sample-fixtures-on-the-model)
 
 - Previews use these fixtures — never inline ad-hoc model construction repeated across preview blocks.
 
