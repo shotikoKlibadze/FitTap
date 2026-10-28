@@ -1,6 +1,8 @@
 ---
 name: architecture
 description: Use when creating or refactoring any SwiftUI screen, view, or screen model — defines the Screen / ScreenModel / View split, who owns what, how callbacks route, and where sheets and navigation are handled.
+paths:
+  - "FitTap/**/*.swift"
 ---
 
 # Screen / ScreenModel / View Architecture

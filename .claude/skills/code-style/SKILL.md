@@ -1,6 +1,9 @@
 ---
 name: code-style
 description: Use when writing or organizing any Swift code — file organization and style rules, starting with one type per file.
+paths:
+  - "FitTap/**/*.swift"
+  - "Packages/**/*.swift"
 ---
 
 # Code Style

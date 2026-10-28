@@ -1,6 +1,9 @@
 ---
 name: design-system
 description: Use when writing ANY view code — screens, subviews, or reusable components — the design system (the local DesignSystem package: FTColors, FTFonts, its components) is mandatory everywhere; also defines where components live (package vs. the app's SharedUI), how they're named (no FT prefix), and its Light/Dark gallery preview.
+paths:
+  - "FitTap/**/*.swift"
+  - "Packages/**/*.swift"
 ---
 
 # Design System

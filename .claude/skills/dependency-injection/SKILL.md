@@ -1,6 +1,8 @@
 ---
 name: dependency-injection
 description: Use when creating or consuming services, API clients, stores, or managers, wiring a screen model's dependencies, or writing tests/previews that need mocks — dependencies are injected with the Factory library (hmlongco/Factory), never constructed inline or reached as globals.
+paths:
+  - "FitTap/**/*.swift"
 ---
 
 # Dependency Injection with Factory

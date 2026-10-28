@@ -1,6 +1,8 @@
 ---
 name: navigation
 description: Use when adding screens, pushing or presenting views, sheets, covers, dismissing, popping, deep links, or any navigation code — the app navigates with the NavigatorUI library (hmlongco/Navigator) through destination enums, not NavigationLink or .sheet bindings.
+paths:
+  - "FitTap/**/*.swift"
 ---
 
 # Navigation with NavigatorUI

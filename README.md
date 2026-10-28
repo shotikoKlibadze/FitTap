@@ -6,18 +6,19 @@ This README holds the *why* behind the project — read it to understand what th
 
 ## My goal
 
-I'm Shota, a lead iOS developer (SwiftUI, ~5 yrs) at a bank, also freelancing.
+I'm Shota, a lead iOS developer (SwiftUI, ~5 yrs) at a bank leading iOS Design System, also freelancing.
 
 Goal: become an AI system architect within 6 months (Oct 2026 – Apr 2027).
 That means being able to:
 
-1. Set up agentic dev workflows for any team: Claude Code with CLAUDE.md, subagents, skills, hooks, MCP, and custom agents (Agent SDK), with evals proving they work.
-2. Design and ship AI features into products: single and multi-agent systems, tool design, memory/RAG, guardrails, human-in-the-loop.
-3. Build and deploy my own models: ML fundamentals (PyTorch), Create ML, Core ML / Core AI, adapter fine-tuning, on-device + cloud hybrid.
+1. Set up agentic dev workflows for any team: Claude Code with CLAUDE.md, subagents, skills, hooks, and MCP, with evals proving they work.
+2. Build and run custom agents with the Claude Agent SDK: standalone agent programs with their own tools, guardrails, and evals, deployed outside a chat (CI, servers, apps).
+3. Design and ship AI features into products: single and multi-agent systems, tool design, memory/RAG, guardrails, human-in-the-loop.
+4. Build and deploy my own models: ML fundamentals (PyTorch), Create ML, Core ML / Core AI, adapter fine-tuning, on-device + cloud hybrid.
 
 Learning: "AI and ML for Coders in PyTorch", "Building Applications with AI Agents", Anthropic Academy + Claude Code docs, Apple WWDC sessions.
 
-End game: better-paid freelance clients for AI/agent work, then a better side job or main role as an AI-focused architect.
+End game: high-paid freelance clients for AI/agent work, then a better side job or main role as an AI-focused architect or Lead iOS Developer with big iOS and AI knowledge.
 
 ## Why FitTap exists
 

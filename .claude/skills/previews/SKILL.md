@@ -1,6 +1,9 @@
 ---
 name: previews
 description: Use when writing any SwiftUI view, subview, or #Preview block, or adding sample data for previews — every view and subview ships a preview, and this defines what each preview must show and where fixture data lives.
+paths:
+  - "FitTap/**/*.swift"
+  - "Packages/**/*.swift"
 ---
 
 # Preview Conventions

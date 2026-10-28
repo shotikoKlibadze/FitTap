@@ -29,6 +29,11 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-toolbar-on-screen.sh",
             "timeout": 10,
             "statusMessage": "Checking toolbar is on the Screen"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/record-edited-file.sh",
+            "timeout": 5
           }
         ]
       }

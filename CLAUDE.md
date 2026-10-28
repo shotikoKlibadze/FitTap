@@ -52,7 +52,7 @@ Most existing apps fail this user: too many fields, too many metrics, too much o
 - **Nutrition & diet** — food and diet plans folded into the same logging model.
 - **Apple Watch + Apple Health integration.**
 
-Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/FeaturePlanning.md) for the app and [AIFeaturePlanning.md](Planning/AIFeaturePlanning.md) for AI features. Check them before building or proposing a feature; they are plans, not commitments, and this document still wins on scope.
+Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/FeaturePlanning.md) for the app and [AIFeaturePlanning.md](Planning/AIFeaturePlanning.md) for AI features, and [AgentSystemPlanning.md](Planning/AgentSystemPlanning.md) for the agent setup. Check them before building or proposing a feature; they are plans, not commitments, and this document still wins on scope.
 
 ### Explicitly not building
 
@@ -69,6 +69,8 @@ Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/Fea
 - **Done = it compiles.** After writing code, the only verification is the per-file compile check above — nothing more: no project builds, no preview renders, no launching or simulator checks, no screenshots, no tests, unless asked. The user checks the look and behavior.
 - **No tests unless asked** — don't write or run tests unprompted (see README.md).
 - **Answer short.** Keep answers as concise as possible — a few sentences or small bullets, a tiny example only when it helps. Expand only when asked ("expand on this").
-- **Rule-making is system-building.** When asked to "add that to the rules" (or to a skill, or anywhere in the agent setup), don't just transcribe it. First, propose the strongest mechanism for the job — plain rule, skill, slash command, hook, MCP tool, subagent, or eval — and say when a more advanced one fits better ("this is a good place for a hook"). Second, write it to be reusable in other projects: generic phrasing over FitTap-specific wherever FitTap's needs allow. FitTap objectives come first, but every rule, skill, and hook is also a candidate component of the reusable agentic system (README.md).
+- **Rule-making is system-building.** "Add that to the rules" means put the rule where it belongs (a skill, this file, a hook, a script, memory), not automatically here. Any change to the agent setup goes through the `skill-authoring` skill: strongest mechanism first, reusable wording.
+- **Agent terminology.** **Subagents** are the agents defined in `.claude/agents/` and run inside Claude Code. **Custom agents** are standalone agent programs built with the Claude Agent SDK. Use these two terms exactly, in answers and in files.
+- **Watch for agent-system triggers.** When work hits a trigger in [AgentSystemPlanning.md](Planning/AgentSystemPlanning.md) — branches or tickets, a second developer or agent, Linear or GitHub, CI, a backend, API keys, a second project, unattended or repeated work a custom agent could do — recommend the matching item in one line, then continue. Don't build it unasked; update the file when an item is built or dropped.
 - **The agent setup is itself a deliverable.** The overall goal behind this project is in [README.md](README.md) — FitTap doubles as a reusable agentic-workflow system, so process quality counts as much as the app. A deviation from a skill is a process defect: address it without excuses, find why it happened, and fix the skill or process so it cannot recur.
 
