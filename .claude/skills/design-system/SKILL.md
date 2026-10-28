@@ -53,7 +53,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 ## Hard rules — components
 
-- **Never change existing component code unless explicitly told to.** Existing components are settled: no refactors, no restyling, no architectural rewrites, no "improvements" as a side effect of another task. A request that *uses* a component is not permission to edit it. If a task seems to require changing one, stop and ask first.
+- **Never change existing component code without the user's OK for that change.** Existing components are settled: no refactors, no restyling, no rewrites, no "improvements" as a side effect of another task. A request that *uses* a component is not permission to edit it, and an earlier OK covers only the change it was given for. Adding a case, a layout or an icon *is* a change. Say what and why on a line starting `Component change:`, then wait for the answer — announcing a change is not asking. *Guarded by `guard-protected-paths.sh`: editing an existing file in `Components/` or `Helpers/` raises a permission prompt carrying that line as the reason.*
 - **Check the package's `Components/` (and `SharedUI/`) before writing any view.** If a component exists for the job, use it — never build a detached look-alike in a feature folder.
 - One file per component, named plainly after what it is: `WorkoutCard`, `SegmentedToggle`, `ListItem`. **No `FT` prefix on components** — the `FT` prefix belongs to the token namespaces only (`FTColors`, `FTFonts`, `FTIcons`). When the plain name collides with a SwiftUI type (`Button`, `Toolbar`, `Label`), prefix with `App`: `AppToolbar`. Otherwise find a plain descriptive name (`PillButton`). Button styles and helpers are plain too (`PressButtonStyle`).
 - **Promotion rule:** a view used by two or more features — or obviously generic (any button, any input) — belongs in the package, or in `SharedUI/` if it needs app models. A view specific to one screen stays in that feature's `Subviews/` (and still uses tokens).
@@ -62,8 +62,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 - **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `CardAddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
 - **Pill buttons: pick the surface, then the meaning.** `GlassPillButton` for a screen's own actions pinned over its content (Start Workout, Save, Add); the flat `PillButton` inside sheets, alerts and cards — glass there would sit on glass. Both take the same `PillStyle`: `.primary` (green), `.secondary` (faint surface), `.destructive` (red), `.add` (faint surface, yellow text — "+ Add Set"), and the same `PillButtonSize`.
-- **Another look goes inside the shared enums.** A new meaning → a case on `PillStyle` (both pills get it); a size → `PillButtonSize`; another button kind's variant → its own enum. Never a restyled copy outside them.
-- **No button fits at all → stop and ask.** The answer is a new variant or a new component in `Buttons/` — never a one-off styled `Button` in place. Asking is mandatory because changing an existing button is a component change (see below).
+- **A missing look goes inside the component — after the user's OK.** A new meaning → a case on `PillStyle` (both pills get it); a size → `PillButtonSize`; another button's variant → its own enum. Never a restyled copy or a one-off styled `Button` in place. Adding the case is a component change: ask first (see components above).
 - **The one exception: `AppToolbar`'s bar items.** They're plain glyphs on the system's shared glass, drawn inside `AppToolbar` — our own button chrome there breaks the push/pop morph.
 - A tappable surface that isn't a button — a card, a list row, a grid cell, a picker tile — is its own component and may wrap a `Button` around its content. The rule targets button-shaped controls: pills, capsules, circles, text actions.
 
@@ -77,6 +76,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 - **The app has one alert: `AppAlert`, presented with `.appAlert(isPresented:…)`.** Never use SwiftUI's `.alert`, `.confirmationDialog`, or a hand-rolled overlay or card for a question to the user.
 - It sits where the system alert does (centered) over a dimmed app (`FTColors.scrim`, covering toolbar and tab bar too). Don't morph, anchor, or attach confirmations to the control that triggered them.
+- **The one exception: a full-screen mode's own close button** (the workout session's ✕) uses `GlassCloseConfirmation` — the glass ✕ morphs into the confirmation at its corner. Nothing else does, and nothing else gets a second alert component.
 - The screen owns an `isShowing…Alert` `@State`; the action that needs confirming sets it to `true`. Put destructive or navigating work in the action's handler (`onConfirm`) — it runs after the alert has fully left, so popping or dismissing is safe there.
 - **Two shapes, one alert.** A yes/no question uses the shortcut `.appAlert(…, confirmTitle:, confirmStyle:, cancelTitle:, onConfirm:)` — a colored confirm over a quiet cancel. A choice between equal paths passes `actions: [AppAlertAction]` — each its own title, `PillStyle` and handler (e.g. "Edit Workout" / "Change Date", both `.secondary`). A tap on the dimmed background always just closes it.
 - An alert need neither shape covers (an input field, a list) → ask before extending `AppAlert`; never build a second alert.
@@ -102,12 +102,12 @@ A component's previews follow the `previews` skill: **exactly two, `"Light"` and
 
 1. FTColors / FTFonts are the only sources of color and type, everywhere — no inline `Font`/`Color` ever.
 2. Missing token → add it to Tokens/ (or ask); never inline the value.
-3. Check Components/ first; never build a detached duplicate of an existing component.
+3. Check Components/ first; never build a detached duplicate of an existing component. Changing an existing one — a new case included — needs the user's OK for that change: say why on a `Component change:` line, then wait.
 4. Reusable UI lives in the `DesignSystem` package (`SharedUI/` when it needs app models), plainly named (no `FT`; `App` only on SwiftUI collisions), one per file; one-screen views stay in feature `Subviews/`.
 5. Variants are enums; states derive from inputs; one component renders all its states.
 6. Every token set and component has exactly two previews, `"Light"` and `"Dark"`, rendering one interactive gallery host kept current with every change (see the `previews` skill).
 7. Components are dumb: properties, bindings, callbacks — nothing else.
 8. Every tappable element declares a `.contentShape(...)` matching its visible shape — taps land anywhere on it, never only on the text.
 9. Every alert is `.appAlert(...)` — centered over a dimmed app; never `.alert`, `.confirmationDialog`, or a custom overlay.
-10. Every button is a `Buttons/` component (toolbar items excepted); a missing color or size is a new case inside the button; nothing fits → ask, never hand-build.
+10. Every button is a `Buttons/` component (toolbar items excepted); a missing look is a new case inside the button, after the user's OK — never a hand-built one.
 11. The `DesignSystem` package never sees app models; its API is `public` with explicit `public init`s; its assets load with `bundle: .module`.

@@ -63,8 +63,11 @@ struct BottomSheet<Content: View>: View {
             .frame(height: height - BottomSheetMetrics.dragAreaHeight, alignment: .top)
             .padding(.top, BottomSheetMetrics.dragAreaHeight)
             .background {
-                shape
-                    .fill(FTColors.surface)
+                // A raised surface like the cards: in dark mode the lit top
+                // edge and hairline are what separate the sheet from a black
+                // screen; in light mode it's the flat surface and its shadow.
+                Color.clear
+                    .elevatedSurface(in: shape)
                     .ignoresSafeArea(edges: .bottom)
             }
             .overlay(alignment: .top) { handle }

@@ -10,7 +10,7 @@ Every feature is judged by the tap test: fewer taps than the competitor, or it i
 - **Workouts:** templates · start from template or empty · exercise catalog + custom exercises · search and recents · reorder and swap mid-session · session status · simple weekly schedule
 - **Home:** today card · streak and consistency · last session glance · one nudge slot
 - **Statistics:** per-exercise progress · auto PRs · volume and frequency per muscle · cardio trends · calendar · optional body weight log
-- **Watch:** wrist logging · rest timer haptics · HKWorkoutSession recording · live sync · auto start/stop detection
+- **Watch:** wrist logging · rest timer haptics · HKWorkoutSession recording · start from iPhone · mirrored session · live sync · effort rating · auto start/stop detection
 - **HealthKit:** read workout metrics · write workouts · sets as workout activities · read body weight · permission on first use
 - **Siri / App Intents:** core intents with App Shortcut phrases · indexed entities · `system.search` / `system.open` schemas · on-screen annotations · intent donations · dialog variants · intents testing
 - **Later:** nutrition · widgets and Live Activities · iCloud sync · CSV export · plate calculator
@@ -78,7 +78,10 @@ The Watch logs; the phone thinks. The companion app mirrors the current session.
 | **Watch logging** | Current exercise, the same weight/rep chips, one tap per set. Crown adjusts weight. | Phone stays in the bag. |
 | **Rest timer on wrist** | Haptic when rest ends. | No looking at the phone. |
 | **Workout session recording** | Starts an `HKWorkoutSession` with the right activity type so HR, calories and duration are recorded by watchOS. | Gets the health data for free, shows in Fitness rings. |
-| **Live sync** | Sets logged on either device appear on the other within seconds. | One source of truth. |
+| **Start from iPhone** | "Start workout" on the phone launches the Watch app and starts the session there (`startWatchApp(toHandle:)`). Requires the FitTap Watch app installed. ⚠️ Whether the Watch must be worn and unlocked: verify on device. | The user starts where the phone already is; the Watch still records. |
+| **Mirrored session** | The Watch session mirrors to the iPhone (`startMirroringToCompanionDevice`): both show the same live timer and HR; pause, resume, end work from either. Only one workout session runs at a time, so FitTap replaces Apple's Workout app for that session. | Log on whichever device is in hand. |
+| **Live sync** | Sets logged on either device appear on the other within seconds. During a workout, sets travel as `Data` over the mirrored session (`sendToRemoteWorkoutSession(data:)`); outside a workout (history, templates, settings), via WatchConnectivity. The Watch owns the live session's sets; no duplicates or conflicts. Reference: [Knowledge/watchOS/README.md §3](../Knowledge/watchOS/README.md). | One source of truth. |
+| **Effort rating** | One tap on a 1–10 scale at the end of the session, in FitTap's own UI. Stored with the session; also written to HealthKit's workout effort score so Fitness and Training Load see it (⚠️ API not yet in Knowledge). | How hard it felt, for one tap; feeds progression nudges. |
 | **Auto start/stop detection** | Suggests starting a session when motion and HR look like training; suggests ending when they stop. (Rules first; model later; see AI plan.) | Removes the Start tap. |
 
 ## 6. HealthKit

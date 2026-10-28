@@ -7,9 +7,12 @@ import SwiftUI
 /// with "+ Add Set" below; the card edits the sets through its binding, and
 /// adding a set repeats the last one, so identical sets cost one tap. In
 /// `.view` the same rows read as plain text — reps on the left, weight on
-/// the right — with nothing to tap but the suggestion wand. Switching mode
-/// inside `withAnimation` morphs the card in place: pills fade to text, the
-/// remove buttons and "+ Add Set" fade out, the rows tighten.
+/// the right — with nothing to tap but the suggestion wand. In `.session`,
+/// while working out, the pills stay so a set's values can still be
+/// adjusted, each row ends in a check instead of a remove button, there's no
+/// "+ Add Set", and a checked set's values dim. Switching mode inside
+/// `withAnimation` morphs the card in place: pills fade to text, the row's
+/// trailing button swaps, "+ Add Set" fades, the rows tighten or loosen.
 ///
 /// Cardio has no sets: one row with duration and an optional speed.
 struct ExerciseCard: View {
@@ -18,6 +21,8 @@ struct ExerciseCard: View {
         case view
         /// Pills to pick values, remove buttons, "+ Add Set".
         case edit
+        /// Working out: pills to adjust, a check per set to log it.
+        case session
     }
 
     let exercise: Exercise
@@ -66,8 +71,11 @@ struct ExerciseCard: View {
 
     private var isEditing: Bool { mode == .edit }
 
+    /// Editing and working out both tap values to change them.
+    private var showsPills: Bool { mode != .view }
+
     /// Pills need room for a thumb; plain text rows sit closer together.
-    private var rowHeight: CGFloat { isEditing ? 44 : 28 }
+    private var rowHeight: CGFloat { showsPills ? 44 : 28 }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -89,7 +97,9 @@ struct ExerciseCard: View {
     }
 
     private func setRow(index: Int, set: SetEntry) -> some View {
-        HStack(spacing: 8) {
+        // A logged set steps back while working out; the next one stands out.
+        let isDone = mode == .session && set.loggedAt != nil
+        return HStack(spacing: 8) {
             Text("\(index + 1)")
                 .font(FTFonts.footnoteSemibold)
                 .foregroundStyle(FTColors.textSecondary)
@@ -100,21 +110,27 @@ struct ExerciseCard: View {
             GeometryReader { proxy in
                 let repsWidth = (proxy.size.width - 8) / 2.35
                 HStack(spacing: 8) {
-                    pill(value: "\(set.reps)", unitLabel: "reps", textAlignment: .leading) {
+                    pill(value: "\(set.reps)", unitLabel: "reps", textAlignment: .leading, isDimmed: isDone) {
                         onTapReps(set.id)
                     }
                     .frame(width: repsWidth)
 
-                    pill(value: weightValue(set), unitLabel: weightUnitLabel, textAlignment: .trailing) {
+                    pill(value: weightValue(set), unitLabel: weightUnitLabel, textAlignment: .trailing, isDimmed: isDone) {
                         onTapWeight(set.id)
                     }
                 }
             }
             .frame(height: rowHeight)
 
-            if isEditing {
+            switch mode {
+            case .edit:
                 removeButton { removeSet(set.id) }
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
+            case .session:
+                CheckmarkButton(isChecked: set.loggedAt != nil) { toggleLogged(set.id) }
+                    .transition(.scale(scale: 0.5).combined(with: .opacity))
+            case .view:
+                EmptyView()
             }
         }
     }
@@ -151,33 +167,35 @@ struct ExerciseCard: View {
         .buttonStyle(.press)
     }
 
-    /// A value with its unit. Editing, it's a centered tappable pill; viewing,
-    /// the pill's fill fades away and the text slides to `textAlignment`, so
-    /// the same view carries both looks and the switch animates.
+    /// A value with its unit. Editing or working out, it's a centered tappable
+    /// pill; viewing, the pill's fill fades away and the text slides to
+    /// `textAlignment`, so the same view carries both looks and the switch
+    /// animates. `isDimmed` greys the value — a set already logged.
     private func pill(
         value: String,
         unitLabel: String?,
         textAlignment: Alignment,
+        isDimmed: Bool = false,
         action: @escaping () -> Void,
     ) -> some View {
         Button(action: action) {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Text(value)
                     .font(FTFonts.bodySemibold)
-                    .foregroundStyle(FTColors.textPrimary)
+                    .foregroundStyle(isDimmed ? FTColors.textSecondary : FTColors.textPrimary)
                 if let unitLabel {
                     Text(unitLabel)
-                        .font(isEditing ? FTFonts.footnote : FTFonts.bodySemibold)
-                        .foregroundStyle(isEditing ? FTColors.textSecondary : FTColors.textPrimary)
+                        .font(showsPills ? FTFonts.footnote : FTFonts.bodySemibold)
+                        .foregroundStyle(showsPills ? FTColors.textSecondary : FTColors.textPrimary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: isEditing ? .center : textAlignment)
+            .frame(maxWidth: .infinity, alignment: showsPills ? .center : textAlignment)
             .frame(height: rowHeight)
-            .background(Capsule().fill(FTColors.secondary).opacity(isEditing ? 1 : 0))
+            .background(Capsule().fill(FTColors.secondary).opacity(showsPills ? 1 : 0))
             .contentShape(Capsule())
         }
         .buttonStyle(.press)
-        .allowsHitTesting(isEditing)
+        .allowsHitTesting(showsPills)
         .frame(maxWidth: .infinity)
     }
 
@@ -235,6 +253,16 @@ struct ExerciseCard: View {
             }
         }
     }
+
+    // MARK: - Working out
+
+    /// Logs the set now, or takes the log back.
+    private func toggleLogged(_ id: UUID) {
+        guard let index = workoutExercise.sets.firstIndex(where: { $0.id == id }) else { return }
+        withAnimation(.smooth(duration: 0.2)) {
+            workoutExercise.sets[index].loggedAt = workoutExercise.sets[index].loggedAt == nil ? .now : nil
+        }
+    }
 }
 
 #if DEBUG
@@ -254,17 +282,21 @@ private struct ExerciseCardPreviewHost: View {
         cardio: CardioEntry(duration: 30 * 60),
     )
     @State private var removed = false
-    /// 0 = View, 1 = Edit. The toggle animates its change, so flipping it
-    /// shows the card morphing between modes.
+    /// 0 = View, 1 = Edit, 2 = Session. The toggle animates its change, so
+    /// flipping it shows the card morphing between modes.
     @State private var modeIndex = 0
 
     private var mode: ExerciseCard.Mode {
-        modeIndex == 0 ? .view : .edit
+        switch modeIndex {
+        case 0: .view
+        case 1: .edit
+        default: .session
+        }
     }
 
     var body: some View {
         ScrollView {
-            SegmentedToggle(options: ["View", "Edit"], selectedIndex: $modeIndex)
+            SegmentedToggle(options: ["View", "Edit", "Session"], selectedIndex: $modeIndex)
                 .padding(.bottom, 16)
             if removed {
                 Text("Exercise removed")

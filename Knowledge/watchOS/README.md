@@ -5,7 +5,7 @@ Reference notes on building workout experiences for Apple Watch, project-agnosti
 API names are taken from Apple's sessions; where a session publishes no code the names come from narration and are marked as such. Items marked ⚠️ are unconfirmed.
 
 **Code examples:** [`code/`](code/) — one file per ingested session, named after the video title. A file's presence means that session's transcript and code are ingested.
-**Sources:** WWDC25 334 "What's new in watchOS 26" · WWDC23 10023 "Build a multi-device workout app" · WWDC23 10016 "Build custom workouts with WorkoutKit"
+**Sources:** WWDC25 334 "What's new in watchOS 26" · WWDC23 10023 "Build a multi-device workout app" (+ its sample project, MirroringWorkoutsSample) · WWDC23 10016 "Build custom workouts with WorkoutKit"
 **Related:** [`../iOSHealthKit/`](../iOSHealthKit/README.md) for `HKWorkoutSession`, builders, zones and statistics.
 
 ---
@@ -75,21 +75,29 @@ A Swift framework that lets an app **create the same workout types a user can bu
 
 ## 3. Mirrored workout sessions, Watch ↔ iPhone (iOS 17 / watchOS 10)
 
-→ `code/BuildAMultiDeviceWorkoutApp.swift` (narration only, no published snippets)
+→ `code/BuildAMultiDeviceWorkoutApp.swift` (excerpts from Apple's sample project; API names below are confirmed by it)
 
 The Watch runs the **primary** `HKWorkoutSession`; the iPhone holds a **mirrored** session. HealthKit keeps their **states in sync** (pause on one pauses the other), and either side can control the workout.
 
 ### Flow
-1. iPhone, at every launch (foreground or background): register the **mirroring start handler** on `HKHealthStore` so it can receive a session.
-2. iPhone: `startWatchApp(with: configuration)` launches the Watch app with an `HKWorkoutConfiguration`.
-3. Watch: create the primary session from the configuration, call **`startMirroringToCompanionDevice`**, then `startActivity`. HealthKit launches the iPhone app in the background and gives it **10 seconds** to start a Live Activity and receive the session via the handler.
+1. iPhone, at every launch (foreground or background): set **`healthStore.workoutSessionMirroringStartHandler`** so it can receive a session.
+2. iPhone: `try await healthStore.startWatchApp(toHandle: configuration)` launches the Watch app with an `HKWorkoutConfiguration`; the Watch receives it in `WKApplicationDelegate.handle(_ workoutConfiguration:)` (via `@WKApplicationDelegateAdaptor`).
+3. Watch: create the primary session and its `HKLiveWorkoutBuilder` + `HKLiveWorkoutDataSource`, call **`try await startMirroringToCompanionDevice()`**, then `startActivity(with:)` and `beginCollection(at:)`. HealthKit launches the iPhone app in the background and gives it **10 seconds** to start a Live Activity and receive the session via the handler.
 4. Both sides set session delegates for state changes and events. **Keep a strong reference** to the mirrored session on the iPhone.
-5. Controls (pause/resume) issued on either device reach the other's delegate.
+5. Controls (`pause()`, `resume()`, `stopActivity(with:)`) work on either session; the state change reaches both delegates.
+6. End on the Watch only after the delegate reports `.stopped`: `builder.endCollection(at:)` → `builder.finishWorkout()` → `session.end()`.
 
 ### Data between devices
-- `sendData(toRemoteWorkoutSession:)` on either session; the other side's delegate gets `didReceiveDataFromRemoteDevice`. Apple's example: cycling speed/power/cadence Watch → iPhone for display, water intake iPhone → Watch to save.
-- `stopMirroringToCompanionDevice` ends mirroring; the mirrored side gets `didDisconnectFromRemoteDeviceWithError`.
+- `try await session.sendToRemoteWorkoutSession(data:)` on either session; the other side's delegate gets `workoutSession(_:didReceiveDataFromRemoteWorkoutSession: [Data])`. Apple's example: `HKStatistics` Watch → iPhone for display, a water `HKQuantity` iPhone → Watch saved with `builder.addSamples`. Both are encoded with `NSKeyedArchiver` (secure coding); the sample also sends a `Codable` elapsed-time stamp so the iPhone timer matches the Watch.
+- While an app is suspended, HealthKit buffers incoming data and delivers it as one array, in arrival order, on resume.
+- `stopMirroringToCompanionDevice` ends mirroring; the mirrored side gets `workoutSession(_:didDisconnectFromRemoteDeviceWithError:)`.
 - End and save on the Watch (finish the builder); the `HKWorkout` syncs to iPhone and iPad for the summary.
+
+### From the sample project
+- Setup: HealthKit capability on both targets, Health usage descriptions, Watch `WKBackgroundModes` = `workout-processing`, `WKCompanionAppBundleIdentifier`. Physical devices only.
+- Session and builder delegates run on an **anonymous serial background queue**: mark them `nonisolated` and hop to the main actor. The sample funnels state changes through an `AsyncStream` with `.bufferingNewest(1)` because actor tasks aren't FIFO.
+- Authorization: iPhone/iPad use `.healthDataAccessRequest`; the Watch calls `healthStore.requestAuthorization(toShare:read:)`.
+- A custom `TimelineSchedule` that returns no entries while paused drives the live elapsed-time display (30 fps, 1 fps in always-on).
 
 ### Also in this session
 - Cycling data types: speed, power, cadence, **FTP** (auto-calculated by the Watch from paired Bluetooth sensors). Bluetooth cycling sensors pair directly, like HR monitors.
@@ -101,6 +109,5 @@ The Watch runs the **primary** `HKWorkoutSession`; the iPhone holds a **mirrored
 - Exact initializer labels for `CustomWorkoutComposition`, `BlockStep`, `WorkoutAlert`, and the HKWorkout → composition extension name.
 - Whether strength-training activity types work meaningfully with custom compositions (goals are time/distance/open; no rep or set concepts).
 - WorkoutKit changes after watchOS 10 (WWDC24 added pool swimming and step `displayName`; WWDC25/26 not yet ingested).
-- Exact names of the mirroring start handler and the remote-data delegate methods (narration only).
 - Whether Smart Stack workout suggestions apply to strength workouts without route data.
 - Not yet ingested: "Build a workout app for Apple Watch" (WWDC21 10009), WWDC26 watchOS Group Lab, "Extend your app's controls across the system", "What's new in widgets".

@@ -1,3 +1,4 @@
+import DesignSystem
 import NavigatorUI
 import SwiftUI
 
@@ -21,5 +22,12 @@ struct HomeScreen: View {
             onTapSession: screenModel.didTapSession,
         )
         .navigate(to: $screenModel.destination)
+        .bottomSheet(item: $screenModel.planningDay, height: { _ in PlanDayMetrics.sheetHeight }) { day in
+            PlanDayScreen(
+                day: day,
+                onDone: screenModel.didFinishPlanning,
+                onTapNewWorkout: screenModel.didTapNewWorkoutWhilePlanning,
+            )
+        }
     }
 }

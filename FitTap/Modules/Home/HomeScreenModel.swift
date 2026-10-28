@@ -7,6 +7,8 @@ import SwiftUI
 @Observable
 final class HomeScreenModel {
     var destination: HomeScreenDestination?
+    /// The day the plan sheet is open for; non-nil shows it.
+    var planningDay: Date?
     /// The week the strip is showing — its Monday. Drives the week list.
     var currentWeek: Date?
     /// The day whose card shows under the strip; today to begin with. Only a
@@ -128,7 +130,17 @@ final class HomeScreenModel {
     // MARK: - Intents
 
     func didTapPlanWorkout() {
-        // The plan-workout sheet comes next: this is where it opens.
+        planningDay = selectedDay
+    }
+
+    /// The pick is already saved; this just closes the sheet.
+    func didFinishPlanning() {
+        planningDay = nil
+    }
+
+    func didTapNewWorkoutWhilePlanning() {
+        planningDay = nil
+        destination = .newWorkout
     }
 
     /// Opens the session's workout. Planned and missed ones can still move to

@@ -24,4 +24,20 @@ extension WorkoutTemplate {
         let meters = exercises.compactMap(\.cardio?.distanceMeters).reduce(0, +)
         return meters > 0 ? meters : nil
     }
+
+    /// One line for tiles and list rows. Strength: "6 exercises · 18 sets"
+    /// (just the exercises while nothing has sets). Cardio: "30 min · 6 km".
+    var summaryText: String {
+        switch type {
+        case .strength:
+            let exerciseText = exercises.count == 1 ? "1 exercise" : "\(exercises.count) exercises"
+            return setCount > 0 ? "\(exerciseText) · \(setCount) sets" : exerciseText
+        case .cardio:
+            var parts = ["\(estimatedMinutes) min"]
+            if let meters = plannedDistanceMeters {
+                parts.append("\((meters / 1000).formatted(.number.precision(.fractionLength(0...1)))) km")
+            }
+            return parts.joined(separator: " · ")
+        }
+    }
 }

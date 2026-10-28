@@ -16,4 +16,18 @@ final class WorkoutSessionStore {
     func add(_ session: WorkoutSession) {
         sessions.append(session)
     }
+
+    func session(id: UUID) -> WorkoutSession? {
+        sessions.first { $0.id == id }
+    }
+
+    /// Replaces the session with the same id; unknown ids are ignored.
+    func update(_ session: WorkoutSession) {
+        guard let index = sessions.firstIndex(where: { $0.id == session.id }) else { return }
+        sessions[index] = session
+    }
+
+    func remove(id: UUID) {
+        sessions.removeAll { $0.id == id }
+    }
 }

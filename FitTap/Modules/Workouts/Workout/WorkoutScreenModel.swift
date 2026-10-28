@@ -204,8 +204,27 @@ final class WorkoutScreenModel {
         }
     }
 
+    /// Opens the workout as a session. Opened from a planned session, that one
+    /// starts; otherwise today's unfinished session of this workout carries on,
+    /// or a new one begins.
     func didTapStartWorkout() {
-        // The active workout comes later: this is where it starts.
+        guard let storedWorkout else { return }
+        let day = plannedDate ?? today
+        let existing = sessionStore.sessions.first {
+            $0.workout.id == storedWorkout.id && $0.endedAt == nil
+                && calendar.isDate($0.scheduledFor, inSameDayAs: day)
+        }
+        if var session = existing {
+            if session.startedAt == nil {
+                session.startedAt = .now
+                sessionStore.update(session)
+            }
+            destination = .session(session.id, startedFresh: false)
+        } else {
+            let session = WorkoutSession(workout: storedWorkout, scheduledFor: .now, startedAt: .now)
+            sessionStore.add(session)
+            destination = .session(session.id, startedFresh: true)
+        }
     }
 
     var today: Date {
@@ -280,20 +299,7 @@ final class WorkoutScreenModel {
     /// closes the picker.
     func applySetValue(_ edit: SetValueEdit) {
         setValuePicker = nil
-        guard let exerciseIndex = exercises.firstIndex(where: { $0.id == edit.workoutExerciseID }) else { return }
-        switch edit.field {
-        case .reps, .weight:
-            guard let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == edit.setID }) else { return }
-            if edit.field == .reps {
-                exercises[exerciseIndex].sets[setIndex].reps = Int(edit.value)
-            } else {
-                exercises[exerciseIndex].sets[setIndex].weight = edit.value
-            }
-        case .duration:
-            exercises[exerciseIndex].cardio?.duration = edit.value * 60
-        case .speed:
-            exercises[exerciseIndex].cardio?.speedKmh = edit.value
-        }
+        exercises.apply(edit)
     }
 
     func removeExercise(_ id: UUID) {
@@ -358,37 +364,16 @@ final class WorkoutScreenModel {
     private func openPicker(_ field: SetValuePickerContext.Field, workoutExerciseID: UUID, setID: UUID) {
         guard
             let workoutExercise = exercises.first(where: { $0.id == workoutExerciseID }),
-            let setIndex = workoutExercise.sets.firstIndex(where: { $0.id == setID }),
             let exercise = catalog[workoutExercise.exerciseID]
         else { return }
-        let set = workoutExercise.sets[setIndex]
-        setValuePicker = SetValuePickerContext(
-            field: field,
-            workoutExerciseID: workoutExerciseID,
-            setID: setID,
-            exerciseName: exercise.name,
-            setNumber: setIndex + 1,
-            exerciseKind: exercise.kind,
-            loadMode: exercise.loadMode,
-            currentValue: field == .reps ? Double(set.reps) : set.weight,
-        )
+        setValuePicker = .set(field, of: workoutExercise, setID: setID, exercise: exercise)
     }
 
     private func openCardioPicker(_ field: SetValuePickerContext.Field, workoutExerciseID: UUID) {
         guard
             let workoutExercise = exercises.first(where: { $0.id == workoutExerciseID }),
-            let cardio = workoutExercise.cardio,
             let exercise = catalog[workoutExercise.exerciseID]
         else { return }
-        setValuePicker = SetValuePickerContext(
-            field: field,
-            workoutExerciseID: workoutExerciseID,
-            setID: nil,
-            exerciseName: exercise.name,
-            setNumber: nil,
-            exerciseKind: exercise.kind,
-            loadMode: nil,
-            currentValue: field == .duration ? cardio.duration / 60 : cardio.speedKmh,
-        )
+        setValuePicker = .cardio(field, of: workoutExercise, exercise: exercise)
     }
 }

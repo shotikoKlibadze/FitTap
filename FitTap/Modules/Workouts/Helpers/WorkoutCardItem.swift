@@ -14,25 +14,11 @@ struct WorkoutCardItem: Identifiable, Hashable {
     init(workout: WorkoutTemplate) {
         id = workout.id
         title = workout.name
+        summary = workout.summaryText
+        iconName = workout.type.iconName
         color = workout.color.color
-        iconName = switch workout.type {
-        case .strength: "dumbbell"
-        case .cardio: "figure.run"
-        }
         muscleLabels = [workout.primaryMuscleGroup, workout.secondaryMuscleGroup]
             .compactMap { $0?.displayName }
-        summary = Self.summary(for: workout)
-    }
-
-    /// "6 exercises · 18 sets", or just the exercise count when nothing has
-    /// sets yet.
-    private static func summary(for workout: WorkoutTemplate) -> String {
-        let exerciseCount = workout.exercises.count
-        let setCount = workout.exercises.reduce(0) { $0 + $1.sets.count }
-        if setCount > 0 {
-            return "\(exerciseCount) exercises · \(setCount) sets"
-        }
-        return "\(exerciseCount) exercises"
     }
 }
 
