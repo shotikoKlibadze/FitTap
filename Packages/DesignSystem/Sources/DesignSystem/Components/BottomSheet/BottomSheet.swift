@@ -112,8 +112,8 @@ private struct BottomSheetPreviewHost: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            PillButton(title: "Short sheet") { height = 240 }
-            PillButton(title: "Tall sheet") { height = 520 }
+            GlassPillButton(title: "Short sheet") { height = 240 }
+            GlassPillButton(title: "Tall sheet") { height = 520 }
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)

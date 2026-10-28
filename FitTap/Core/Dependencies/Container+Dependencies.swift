@@ -10,4 +10,18 @@ extension Container {
         self { MainActor.assumeIsolated { ExerciseStore() } }
             .singleton
     }
+
+    /// Workout templates — what the Workouts tab lists and Home plans from.
+    @MainActor
+    var workoutStore: Factory<WorkoutStore> {
+        self { MainActor.assumeIsolated { WorkoutStore() } }
+            .singleton
+    }
+
+    /// Dated sessions — planned, done and missed — behind the Home week strip.
+    @MainActor
+    var workoutSessionStore: Factory<WorkoutSessionStore> {
+        self { MainActor.assumeIsolated { WorkoutSessionStore() } }
+            .singleton
+    }
 }

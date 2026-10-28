@@ -11,6 +11,8 @@ public enum FTIcons {
     public static let xMark = Image("X.bold", bundle: .module)
     public static let check = Image("Check.bold", bundle: .module)
     public static let plus = Image(systemName: "plus")
+    public static let chevronLeft = Image(systemName: "chevron.left")
+    public static let chevronRight = Image(systemName: "chevron.right")
     public static let wandAndSparkles = Image(systemName: "wand.and.sparkles.inverse")
 }
 
@@ -29,6 +31,8 @@ private let ftIconRows: [FTIconRow] = [
     FTIconRow(name: "xMark", image: FTIcons.xMark),
     FTIconRow(name: "check", image: FTIcons.check),
     FTIconRow(name: "plus", image: FTIcons.plus),
+    FTIconRow(name: "chevronLeft", image: FTIcons.chevronLeft),
+    FTIconRow(name: "chevronRight", image: FTIcons.chevronRight),
 ]
 
 private struct FTIconsPreviewHost: View {

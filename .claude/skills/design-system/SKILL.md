@@ -23,7 +23,7 @@ Packages/DesignSystem/
     └── Resources/Media.xcassets    // icon assets — load with Image(_:bundle: .module)
 
 FitTap/SharedUI/                    // reusable UI that needs the app's models
-├── Cards/                          // ExerciseCard, WorkoutCard
+├── Cards/                          // ExerciseCard
 ├── ExerciseListItem.swift
 └── Styling/                        // WorkoutColor+Color, Equipment+Icon
 ```
@@ -32,6 +32,8 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 - **The package never knows the app's models.** No `Exercise`, `MuscleGroup`, `Equipment`, formatters or stores inside it — it takes plain values (`String`, `Image`, `Double`, closures such as a `label: (Double) -> String`). Previews in the package use plain sample data.
 - **UI that needs a model lives in `FitTap/SharedUI/`**, built from package components and tokens. Same naming, preview and token rules as the package.
+- **The test is "model-free", not "reused".** A component that can take plain values belongs in the package even if one screen uses it — it previews fast and outlives the model. It goes to `SharedUI/` only when it must read or edit a model (`ExerciseCard` edits a `WorkoutExercise` binding).
+- **A screen maps its model to a package component through an `…Item`** in its `Helpers/` (`SessionCardItem`, `WorkoutCardItem`): an `init(model:)` that does all formatting, then the View passes the item's fields to the component.
 - **A package component's API is `public`:** the type, an explicit `public init` (memberwise inits are internal), `public var body`, and any nested enums or constants the app reads. Implementation details stay `private`. A component that's only reached through a modifier (`AppAlert`, `BottomSheet`) stays internal and its modifier is public.
 - **Package assets load with `bundle: .module`.**
 
@@ -55,8 +57,9 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 ## Hard rules — buttons
 
-- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `RoundButton`, `CardAddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
-- **Another color or size goes inside the button.** Need a color the button doesn't have → add a case to its color enum (e.g. `PillButton.ButtonColor.neutralYellow`); a size → its `Size` enum. Never a restyled copy outside it.
+- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `CardAddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
+- **Pill buttons: pick the surface, then the meaning.** `GlassPillButton` for a screen's own actions pinned over its content (Start Workout, Save, Add); the flat `PillButton` inside sheets, alerts and cards — glass there would sit on glass. Both take the same `PillStyle`: `.primary` (green), `.secondary` (faint surface), `.destructive` (red), `.add` (faint surface, yellow text — "+ Add Set"), and the same `PillButtonSize`.
+- **Another look goes inside the shared enums.** A new meaning → a case on `PillStyle` (both pills get it); a size → `PillButtonSize`; another button kind's variant → its own enum. Never a restyled copy outside them.
 - **No button fits at all → stop and ask.** The answer is a new variant or a new component in `Buttons/` — never a one-off styled `Button` in place. Asking is mandatory because changing an existing button is a component change (see below).
 - **The one exception: `AppToolbar`'s bar items.** They're plain glyphs on the system's shared glass, drawn inside `AppToolbar` — our own button chrome there breaks the push/pop morph.
 - A tappable surface that isn't a button — a card, a list row, a grid cell, a picker tile — is its own component and may wrap a `Button` around its content. The rule targets button-shaped controls: pills, capsules, circles, text actions.
@@ -71,8 +74,9 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 - **The app has one alert: `AppAlert`, presented with `.appAlert(isPresented:…)`.** Never use SwiftUI's `.alert`, `.confirmationDialog`, or a hand-rolled overlay or card for a question to the user.
 - It sits where the system alert does (centered) over a dimmed app (`FTColors.scrim`, covering toolbar and tab bar too). Don't morph, anchor, or attach confirmations to the control that triggered them.
-- The screen owns an `isShowing…Alert` `@State`; the action that needs confirming sets it to `true`. Put destructive or navigating work in `onConfirm` — it runs after the alert has fully left, so popping or dismissing is safe there.
-- An alert need the component can't express (a third button, an input field) → ask before extending `AppAlert`; never build a second alert.
+- The screen owns an `isShowing…Alert` `@State`; the action that needs confirming sets it to `true`. Put destructive or navigating work in the action's handler (`onConfirm`) — it runs after the alert has fully left, so popping or dismissing is safe there.
+- **Two shapes, one alert.** A yes/no question uses the shortcut `.appAlert(…, confirmTitle:, confirmStyle:, cancelTitle:, onConfirm:)` — a colored confirm over a quiet cancel. A choice between equal paths passes `actions: [AppAlertAction]` — each its own title, `PillStyle` and handler (e.g. "Edit Workout" / "Change Date", both `.secondary`). A tap on the dimmed background always just closes it.
+- An alert need neither shape covers (an input field, a list) → ask before extending `AppAlert`; never build a second alert.
 
 ## How components are built
 

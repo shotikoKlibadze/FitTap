@@ -9,15 +9,22 @@ public extension View {
     ///
     /// For surfaces that sit on the screen background — cards, fields, the
     /// type switcher. Never for controls inside them (pills, ✕, + Add Set).
+    /// `elevation` sizes the shadow — `.compact` for small tiles packed
+    /// together, whose regular shadows would merge into one.
     /// `dashed` swaps the hairline for the dashed "nothing chosen yet" border.
     /// Lines are drawn inside the shape, so the layout doesn't change.
-    func elevatedSurface<S: InsettableShape>(in shape: S, dashed: Bool = false) -> some View {
-        modifier(ElevatedSurface(shape: shape, dashed: dashed))
+    func elevatedSurface<S: InsettableShape>(
+        in shape: S,
+        elevation: SurfaceElevation = .regular,
+        dashed: Bool = false,
+    ) -> some View {
+        modifier(ElevatedSurface(shape: shape, elevation: elevation, dashed: dashed))
     }
 }
 
 private struct ElevatedSurface<S: InsettableShape>: ViewModifier {
     let shape: S
+    let elevation: SurfaceElevation
     let dashed: Bool
 
     func body(content: Content) -> some View {
@@ -27,7 +34,12 @@ private struct ElevatedSurface<S: InsettableShape>: ViewModifier {
                 // the surface don't cast their own.
                 shape
                     .fill(FTGradients.elevatedSurfaceBackground)
-                    .shadow(color: FTColors.elevatedSurfaceShadow, radius: 14, x: 0, y: 12)
+                    .shadow(
+                        color: FTColors.elevatedSurfaceShadow,
+                        radius: elevation.shadowRadius,
+                        x: 0,
+                        y: elevation.shadowOffset,
+                    )
             }
             .overlay {
                 if dashed {

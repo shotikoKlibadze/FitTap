@@ -33,7 +33,7 @@ Home/
 ```
 
 - **Helper types live in the `Helpers/` folder of the screen that uses them — a hard rule.** A helper is a supporting non-view type: a value handed back from a child screen, a context passed into one, a metrics or constants enum, a small formatter. Never leave one loose in a feature folder.
-- **The consumer owns it.** A value a child screen returns to its parent belongs to the parent, so it lives in the parent's `Helpers/` (e.g. `NewWorkout/Helpers/SetValueEdit.swift`, which the set value picker returns to New Workout). A type a screen only uses itself lives in that screen's `Helpers/` (e.g. `SetValuePicker/Helpers/SetValuePickerContext.swift`).
+- **The consumer owns it.** A value a child screen returns to its parent belongs to the parent, so it lives in the parent's `Helpers/` (e.g. `Workout/Helpers/SetValueEdit.swift`, which the set value picker returns to the Workout screen). A type a screen only uses itself lives in that screen's `Helpers/` (e.g. `SetValuePicker/Helpers/SetValuePickerContext.swift`).
 - A helper used by several features isn't a screen helper: it moves to `Core/` (logic and models) or the design system (UI).
 - The screen's own files — Screen, ScreenModel, View, Destination, Checkpoints — stay at the feature folder's root.
 

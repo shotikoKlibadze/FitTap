@@ -5,27 +5,38 @@ public extension View {
     /// bar included — with everything behind it dimmed. The only way the app
     /// shows alerts; never use SwiftUI's `.alert` or `.confirmationDialog`.
     ///
-    /// `onConfirm` runs once the alert is fully gone, so it can safely pop or
-    /// dismiss the screen. Cancel, or a tap on the dimmed background, just
+    /// Each action's handler runs once the alert is fully gone, so it can
+    /// safely pop or dismiss the screen. A tap on the dimmed background just
     /// closes the alert.
     func appAlert(
         isPresented: Binding<Bool>,
         title: String,
         message: String,
+        actions: [AppAlertAction],
+    ) -> some View {
+        modifier(AppAlertModifier(isPresented: isPresented, title: title, message: message, actions: actions))
+    }
+
+    /// The common shape: a colored confirm over a quiet cancel. `onConfirm`
+    /// runs once the alert is fully gone; cancel just closes it.
+    func appAlert(
+        isPresented: Binding<Bool>,
+        title: String,
+        message: String,
         confirmTitle: String,
-        confirmColor: PillButton.ButtonColor = .red,
+        confirmStyle: PillStyle = .destructive,
         cancelTitle: String = "Cancel",
         onConfirm: @escaping () -> Void,
     ) -> some View {
-        modifier(AppAlertModifier(
+        appAlert(
             isPresented: isPresented,
             title: title,
             message: message,
-            confirmTitle: confirmTitle,
-            confirmColor: confirmColor,
-            cancelTitle: cancelTitle,
-            onConfirm: onConfirm,
-        ))
+            actions: [
+                AppAlertAction(confirmTitle, style: confirmStyle, action: onConfirm),
+                AppAlertAction(cancelTitle),
+            ],
+        )
     }
 }
 
@@ -36,14 +47,12 @@ private struct AppAlertModifier: ViewModifier {
     @Binding var isPresented: Bool
     let title: String
     let message: String
-    let confirmTitle: String
-    let confirmColor: PillButton.ButtonColor
-    let cancelTitle: String
-    let onConfirm: () -> Void
+    let actions: [AppAlertAction]
 
     @State private var isCoverShown = false
     @State private var isVisible = false
-    @State private var didConfirm = false
+    /// The tapped action, run once the cover is gone.
+    @State private var pendingAction: Int?
 
     func body(content: Content) -> some View {
         content
@@ -63,17 +72,9 @@ private struct AppAlertModifier: ViewModifier {
                             .onTapGesture(perform: close)
                             .transition(.opacity)
 
-                        AppAlert(
-                            title: title,
-                            message: message,
-                            confirmTitle: confirmTitle,
-                            confirmColor: confirmColor,
-                            cancelTitle: cancelTitle,
-                            onConfirm: confirm,
-                            onCancel: close,
-                        )
-                        // The system alert's entrance: settles from slightly large.
-                        .transition(.scale(scale: 1.1).combined(with: .opacity))
+                        AppAlert(title: title, message: message, actions: actions, onAction: choose)
+                            // The system alert's entrance: settles from slightly large.
+                            .transition(.scale(scale: 1.1).combined(with: .opacity))
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -84,8 +85,8 @@ private struct AppAlertModifier: ViewModifier {
             }
     }
 
-    private func confirm() {
-        didConfirm = true
+    private func choose(_ index: Int) {
+        pendingAction = index
         close()
     }
 
@@ -99,9 +100,9 @@ private struct AppAlertModifier: ViewModifier {
 
     private func finish() {
         isPresented = false
-        guard didConfirm else { return }
-        didConfirm = false
-        onConfirm()
+        guard let index = pendingAction else { return }
+        pendingAction = nil
+        actions[index].handler?()
     }
 
     private func withoutAnimation(_ change: () -> Void) {

@@ -1,63 +1,53 @@
 import SwiftUI
 
 /// Dashed "add something" card: plus circle, title, optional subtitle.
-/// With `height` it takes that height; without it stays square (grid cell).
+/// It sizes to its content and fills whatever the layout hands it — square
+/// it in a grid with `.aspectRatio(1, contentMode: .fit)` at the call site.
 public struct CardAddButton: View {
     let title: String
     var subtitle: String?
-    var height: CGFloat?
     let action: () -> Void
 
-    public init(title: String, subtitle: String? = nil, height: CGFloat? = nil, action: @escaping () -> Void) {
+    public init(title: String, subtitle: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.subtitle = subtitle
-        self.height = height
         self.action = action
     }
 
+    private let shape = RoundedRectangle(cornerRadius: 30, style: .continuous)
+
     public var body: some View {
         Button(action: action) {
-            card
-                .overlay {
-                    VStack(spacing: 10) {
-                        Circle()
-                            .fill(FTColors.green)
-                            .frame(width: 44, height: 44)
-                            .overlay {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 22, weight: .semibold))
-                                    .foregroundStyle(FTCoreColors.offWhite)
-                            }
-                        Text(title)
-                            .font(FTFonts.headline)
-                            .foregroundStyle(FTColors.textPrimary)
-                        if let subtitle {
-                            Text(subtitle)
-                                .font(FTFonts.footnote)
-                                .foregroundStyle(FTColors.textSecondary)
-                                .multilineTextAlignment(.center)
-                        }
+            VStack(spacing: 10) {
+                Circle()
+                    .fill(FTColors.green)
+                    .frame(width: 44, height: 44)
+                    .overlay {
+                        Image(systemName: "plus")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(FTCoreColors.offWhite)
                     }
-                    .padding(.horizontal, 20)
+                Text(title)
+                    .font(FTFonts.headline)
+                    .foregroundStyle(FTColors.textPrimary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(FTFonts.footnote)
+                        .foregroundStyle(FTColors.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
-                .contentShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                shape
+                    .fill(FTColors.surface)
+                    .stroke(FTColors.separator, style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
+            }
+            .contentShape(shape)
         }
         .buttonStyle(.press)
-    }
-
-    @ViewBuilder
-    private var card: some View {
-        let shape = RoundedRectangle(cornerRadius: 30, style: .continuous)
-            .fill(FTColors.surface)
-            .stroke(FTColors.separator, style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
-        if let height {
-            shape
-                .frame(maxWidth: .infinity)
-                .frame(height: height)
-        } else {
-            shape
-                .aspectRatio(1, contentMode: .fit)
-        }
     }
 }
 
@@ -73,11 +63,12 @@ private struct CardAddButtonPreviewHost: View {
                     .foregroundStyle(FTColors.textSecondary)
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     CardAddButton(title: "New workout") { tapCount += 1 }
+                        .aspectRatio(1, contentMode: .fit)
                 }
+                CardAddButton(title: "Plan workout for today") { tapCount += 1 }
                 CardAddButton(
                     title: "Add Exercise",
                     subtitle: "Add your first exercise to start building the workout.",
-                    height: 170,
                 ) { tapCount += 1 }
             }
             .padding()

@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The app's navigation bar: inline title plus an optional glass icon button
-/// on each side. A nil slot shows nothing. Screens never draw their own header
-/// rows — they attach this with `.appToolbar(...)`.
+/// The app's navigation bar: inline title plus an optional glass button on
+/// each side — a glyph or a short word. A nil slot shows nothing. Screens
+/// never draw their own header rows — they attach this with `.appToolbar(...)`.
 struct AppToolbarModifier: ViewModifier {
     let title: String?
     let leading: AppToolbarButton?
@@ -64,19 +64,40 @@ struct AppToolbarModifier: ViewModifier {
     }
 }
 
-/// A bar item's glyph. The system draws the glass capsule around it.
+/// A bar item's glyph or word. The system draws the glass capsule around it.
 private struct AppToolbarIconButton: View {
     let button: AppToolbarButton
 
+    /// Fits "Cancel" in the body font; anything shorter is padded to it.
+    private let textMinWidth: CGFloat = 56
+
     public var body: some View {
         Button(action: button.action) {
-            button.icon.image
-                .resizable()
-                .scaledToFit()
-                .frame(width: 16, height: 16)
-                .foregroundStyle(FTColors.textPrimary)
-                .frame(width: 35, height: 35)
-                .contentShape(Rectangle())
+            switch button.label {
+            case .icon(let icon):
+                icon.image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(FTColors.textPrimary)
+                    .frame(width: 35, height: 35)
+                    .contentShape(Rectangle())
+            case .text(let title):
+                Text(title)
+                    .font(FTFonts.body)
+                    .foregroundStyle(FTColors.textPrimary)
+                    .lineLimit(1)
+                    // The bar is UIKit-hosted, so the screen's animation never
+                    // reaches it: crossfade a changed word here instead.
+                    .contentTransition(.opacity)
+                    .animation(.smooth(duration: 0.3), value: title)
+                    // Short words share one width, so swapping "Edit" for
+                    // "Cancel" doesn't resize the glass around them.
+                    .frame(minWidth: textMinWidth)
+                    .padding(.horizontal, 8)
+                    .frame(height: 35)
+                    .contentShape(Rectangle())
+            }
         }
         .buttonStyle(.plain)
     }
@@ -97,19 +118,34 @@ public extension View {
 #if DEBUG
 private struct AppToolbarPreviewHost: View {
     @State private var tapped = "—"
+    @State private var showsTextButton = false
+    /// Tapping the text button flips it between "Edit" and "Cancel", to see
+    /// the word crossfade inside a glass that keeps its size.
+    @State private var isEditing = false
 
     var body: some View {
         NavigationStack {
-            Text("Tapped: \(tapped)")
-                .font(FTFonts.body)
-                .foregroundStyle(FTColors.textSecondary)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(FTColors.background)
-                .appToolbar(
-                    title: "Add Exercise",
-                    leading: AppToolbarButton(.back) { tapped = "back" },
-                    trailing: AppToolbarButton(.confirm) { tapped = "confirm" },
-                )
+            VStack(spacing: 20) {
+                Text("Tapped: \(tapped)")
+                    .font(FTFonts.body)
+                    .foregroundStyle(FTColors.textSecondary)
+                Toggle("Text button", isOn: $showsTextButton)
+                    .font(FTFonts.body)
+                    .foregroundStyle(FTColors.textPrimary)
+                    .padding(.horizontal, 40)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(FTColors.background)
+            .appToolbar(
+                title: "Add Exercise",
+                leading: AppToolbarButton(.back) { tapped = "back" },
+                trailing: showsTextButton
+                    ? AppToolbarButton(title: isEditing ? "Cancel" : "Edit") {
+                        isEditing.toggle()
+                        tapped = isEditing ? "edit" : "cancel"
+                    }
+                    : AppToolbarButton(.confirm) { tapped = "confirm" },
+            )
         }
     }
 }

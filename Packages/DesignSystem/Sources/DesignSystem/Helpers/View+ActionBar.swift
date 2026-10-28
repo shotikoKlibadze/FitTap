@@ -8,7 +8,7 @@ public extension View {
     ///
     /// ```swift
     /// .bottomActionBar {
-    ///     PillButton(title: "Create workout", action: create)
+    ///     GlassPillButton(title: "Create workout", action: create)
     /// }
     /// ```
     func bottomActionBar(@ViewBuilder content: () -> some View) -> some View {
@@ -53,7 +53,7 @@ private struct BottomActionBarPreviewHost: View {
             .padding()
         }
         .bottomActionBar {
-            PillButton(title: "Taps: \(tapCount)") { tapCount += 1 }
+            GlassPillButton(title: "Taps: \(tapCount)") { tapCount += 1 }
         }
         .background(FTColors.background)
     }

@@ -98,7 +98,7 @@ public struct NumberEntryPanel: View {
 
             HStack(spacing: 10) {
                 if let onDismiss {
-                    PillButton(title: dismissTitle, color: .neutral, action: onDismiss)
+                    PillButton(title: dismissTitle, style: .secondary, action: onDismiss)
                 }
 
                 PillButton(title: setTitle, disabled: value == nil) {

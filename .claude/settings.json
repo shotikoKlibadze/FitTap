@@ -1,10 +1,16 @@
 {
   "permissions": {
+    "allow": [
+      "mcp__xcode__RunProject",
+      "mcp__xcode__StopProject",
+      "mcp__xcode__XcodeSwitchRunDestination",
+      "mcp__xcode__XcodeListRunDestinations",
+      "mcp__xcode__GetConsoleOutput",
+      "mcp__Claude_Code_iOS_Simulator"
+    ],
     "ask": [
       "mcp__xcode__BuildProject",
-      "mcp__xcode__RunProject",
-      "mcp__xcode__RenderPreview",
-      "mcp__Claude_Code_iOS_Simulator"
+      "mcp__xcode__RenderPreview"
     ]
   },
   "hooks": {

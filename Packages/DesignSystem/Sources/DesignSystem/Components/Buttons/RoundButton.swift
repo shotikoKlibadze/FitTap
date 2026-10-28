@@ -9,6 +9,10 @@ public struct RoundButton: View {
         case close
         case confirm
         case add
+        /// Step back through pages — a month, a week.
+        case previous
+        /// Step forward through pages.
+        case next
 
         public var image: Image {
             switch self {
@@ -16,6 +20,8 @@ public struct RoundButton: View {
             case .close: FTIcons.xMark
             case .confirm: FTIcons.check
             case .add: FTIcons.plus
+            case .previous: FTIcons.chevronLeft
+            case .next: FTIcons.chevronRight
             }
         }
     }
@@ -125,6 +131,8 @@ private struct RoundButtonPreviewHost: View {
                     iconColor: FTColors.surface,
                     backgroundColor: FTColors.textSecondary,
                 ) { tapped = "close small" }
+                RoundButton(icon: .previous, style: .normal, iconColor: FTColors.greenAccent, backgroundColor: .clear) { tapped = "previous" }
+                RoundButton(icon: .next, style: .normal, iconColor: FTColors.greenAccent, backgroundColor: .clear) { tapped = "next" }
             }
         }
         .padding()

@@ -1,14 +1,28 @@
 import DesignSystem
 import SwiftUI
 
-/// An exercise inside a workout being built: name header, one row per set
-/// (reps pill, weight pill, remove), and "+ Add Set". The card edits the
-/// workout exercise's sets through its binding; adding a set repeats the
-/// last one, so the common case — identical sets — costs one tap. Cardio has
-/// no sets: one row with duration and an optional speed, nothing to add.
+/// An exercise inside a workout: name header, then one row per set.
+///
+/// In `.edit` each row is a reps pill, a weight pill and a remove button,
+/// with "+ Add Set" below; the card edits the sets through its binding, and
+/// adding a set repeats the last one, so identical sets cost one tap. In
+/// `.view` the same rows read as plain text — reps on the left, weight on
+/// the right — with nothing to tap but the suggestion wand. Switching mode
+/// inside `withAnimation` morphs the card in place: pills fade to text, the
+/// remove buttons and "+ Add Set" fade out, the rows tighten.
+///
+/// Cardio has no sets: one row with duration and an optional speed.
 struct ExerciseCard: View {
+    enum Mode {
+        /// Read-only, as on a workout's details.
+        case view
+        /// Pills to pick values, remove buttons, "+ Add Set".
+        case edit
+    }
+
     let exercise: Exercise
     @Binding var workoutExercise: WorkoutExercise
+    var mode: Mode = .edit
     /// e.g. "Previous best 20 kg /side × 10"; nil hides the line.
     var previousBest: String?
     var unit: WeightUnit = .kg
@@ -39,13 +53,21 @@ struct ExerciseCard: View {
                     ForEach(Array(workoutExercise.sets.enumerated()), id: \.element.id) { index, set in
                         setRow(index: index, set: set)
                     }
-                    addSetButton
+                    if isEditing {
+                        addSetButton
+                            .transition(.opacity)
+                    }
                 }
             }
             .padding(14)
         }
         .elevatedSurface(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
+
+    private var isEditing: Bool { mode == .edit }
+
+    /// Pills need room for a thumb; plain text rows sit closer together.
+    private var rowHeight: CGFloat { isEditing ? 44 : 28 }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -78,19 +100,22 @@ struct ExerciseCard: View {
             GeometryReader { proxy in
                 let repsWidth = (proxy.size.width - 8) / 2.35
                 HStack(spacing: 8) {
-                    pill(value: "\(set.reps)", unitLabel: "reps") {
+                    pill(value: "\(set.reps)", unitLabel: "reps", textAlignment: .leading) {
                         onTapReps(set.id)
                     }
                     .frame(width: repsWidth)
 
-                    pill(value: weightValue(set), unitLabel: weightUnitLabel) {
+                    pill(value: weightValue(set), unitLabel: weightUnitLabel, textAlignment: .trailing) {
                         onTapWeight(set.id)
                     }
                 }
             }
-            .frame(height: 44)
+            .frame(height: rowHeight)
 
-            removeButton { removeSet(set.id) }
+            if isEditing {
+                removeButton { removeSet(set.id) }
+                    .transition(.scale(scale: 0.5).combined(with: .opacity))
+            }
         }
     }
 
@@ -98,9 +123,17 @@ struct ExerciseCard: View {
     /// exercise, since cardio is one entry.
     private func cardioRow(_ cardio: CardioEntry) -> some View {
         HStack(spacing: 8) {
-            pill(value: "\(Int(cardio.duration / 60))", unitLabel: "min", action: onTapDuration)
-            pill(value: cardio.speedKmh.map(LoadDisplayFormatter.trimmed) ?? "—", unitLabel: "km/h", action: onTapSpeed)
-            removeButton(action: onRemoveExercise)
+            pill(value: "\(Int(cardio.duration / 60))", unitLabel: "min", textAlignment: .leading, action: onTapDuration)
+            pill(
+                value: cardio.speedKmh.map(LoadDisplayFormatter.trimmed) ?? "—",
+                unitLabel: "km/h",
+                textAlignment: .trailing,
+                action: onTapSpeed,
+            )
+            if isEditing {
+                removeButton(action: onRemoveExercise)
+                    .transition(.scale(scale: 0.5).combined(with: .opacity))
+            }
         }
     }
 
@@ -118,7 +151,15 @@ struct ExerciseCard: View {
         .buttonStyle(.press)
     }
 
-    private func pill(value: String, unitLabel: String?, action: @escaping () -> Void) -> some View {
+    /// A value with its unit. Editing, it's a centered tappable pill; viewing,
+    /// the pill's fill fades away and the text slides to `textAlignment`, so
+    /// the same view carries both looks and the switch animates.
+    private func pill(
+        value: String,
+        unitLabel: String?,
+        textAlignment: Alignment,
+        action: @escaping () -> Void,
+    ) -> some View {
         Button(action: action) {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Text(value)
@@ -126,21 +167,22 @@ struct ExerciseCard: View {
                     .foregroundStyle(FTColors.textPrimary)
                 if let unitLabel {
                     Text(unitLabel)
-                        .font(FTFonts.footnote)
-                        .foregroundStyle(FTColors.textSecondary)
+                        .font(isEditing ? FTFonts.footnote : FTFonts.bodySemibold)
+                        .foregroundStyle(isEditing ? FTColors.textSecondary : FTColors.textPrimary)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(Capsule().fill(FTColors.secondary))
+            .frame(maxWidth: .infinity, alignment: isEditing ? .center : textAlignment)
+            .frame(height: rowHeight)
+            .background(Capsule().fill(FTColors.secondary).opacity(isEditing ? 1 : 0))
             .contentShape(Capsule())
         }
         .buttonStyle(.press)
+        .allowsHitTesting(isEditing)
         .frame(maxWidth: .infinity)
     }
 
     private var addSetButton: some View {
-        PillButton(title: "+ Add Set", color: .neutralYellow, size: .compact, action: addSet)
+        PillButton(title: "+ Add Set", style: .add, size: .compact, action: addSet)
     }
 
     // MARK: - Display
@@ -212,9 +254,18 @@ private struct ExerciseCardPreviewHost: View {
         cardio: CardioEntry(duration: 30 * 60),
     )
     @State private var removed = false
+    /// 0 = View, 1 = Edit. The toggle animates its change, so flipping it
+    /// shows the card morphing between modes.
+    @State private var modeIndex = 0
+
+    private var mode: ExerciseCard.Mode {
+        modeIndex == 0 ? .view : .edit
+    }
 
     var body: some View {
         ScrollView {
+            SegmentedToggle(options: ["View", "Edit"], selectedIndex: $modeIndex)
+                .padding(.bottom, 16)
             if removed {
                 Text("Exercise removed")
                     .font(FTFonts.body)
@@ -223,6 +274,7 @@ private struct ExerciseCardPreviewHost: View {
                 ExerciseCard(
                     exercise: .sample,
                     workoutExercise: $bench,
+                    mode: mode,
                     previousBest: "Previous best 20 kg /side × 10",
                     // Stand-ins for the pickers: each tap bumps the value.
                     onTapReps: { id in
@@ -240,6 +292,7 @@ private struct ExerciseCardPreviewHost: View {
             ExerciseCard(
                 exercise: .sampleCardio,
                 workoutExercise: $running,
+                mode: mode,
                 onTapReps: { _ in },
                 onTapWeight: { _ in },
                 onTapSuggestion: {},
