@@ -119,12 +119,17 @@ struct WorkoutView: View {
                     Color.clear
                         .frame(width: planButtonWidth, height: PillButtonSize.regular.height)
                 }
-                GlassPillButton(
-                    title: isEditing ? saveTitle : "Start Workout",
-                    style: isEditing ? .primary : .destructive,
-                    disabled: isEditing && !canSave,
-                    action: isEditing ? onTapSave : onTapStart,
-                )
+                // Start is the one live button: a moving red mesh. Saving is
+                // plain glass; the two crossfade when the mode flips.
+                ZStack {
+                    if isEditing {
+                        GlassPillButton(title: saveTitle, disabled: !canSave, action: onTapSave)
+                            .transition(.opacity)
+                    } else {
+                        MeshPillButton(title: "Start Workout", tint: color.color, action: onTapStart)
+                            .transition(.opacity)
+                    }
+                }
             }
             .overlay(alignment: .bottomLeading) {
                 if hasPlanSlot {

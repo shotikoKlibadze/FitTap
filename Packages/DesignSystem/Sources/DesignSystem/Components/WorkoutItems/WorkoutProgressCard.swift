@@ -47,6 +47,8 @@ public struct WorkoutProgressCard: View {
                     .foregroundStyle(FTColors.textPrimary)
                     .monospacedDigit()
                     .multilineTextAlignment(.trailing)
+                    // Each digit rolls to the next instead of snapping.
+                    .contentTransition(.numericText(countsDown: false))
                 Text("elapsed")
                     .font(FTFonts.caption)
                     .foregroundStyle(FTColors.textSecondary)

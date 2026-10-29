@@ -17,6 +17,7 @@ struct WorkoutSessionScreen: View {
     var body: some View {
         WorkoutSessionView(
             title: screenModel.title,
+            color: screenModel.color.color,
             isConfirmingExit: $screenModel.isConfirmingExit,
             hasLoggedSets: screenModel.hasLoggedSets,
             exitMessage: screenModel.exitMessage,

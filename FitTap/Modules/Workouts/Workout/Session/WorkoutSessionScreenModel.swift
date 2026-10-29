@@ -16,6 +16,7 @@ final class WorkoutSessionScreenModel {
         didSet { save() }
     }
     private(set) var title = ""
+    private(set) var color: WorkoutColor = .green
     private(set) var startedAt = Date.now
 
     private let sessionID: UUID
@@ -32,6 +33,7 @@ final class WorkoutSessionScreenModel {
         self.startedFresh = startedFresh
         guard let session = sessionStore.session(id: sessionID) else { return }
         title = session.workout.name
+        color = session.workout.color
         startedAt = session.startedAt ?? .now
         exercises = session.workout.exercises
     }

@@ -74,6 +74,8 @@ A shader is a per-pixel GPU program with "no awareness of its neighbors" (WWDC26
 
 **Noise and domain warping** (WWDC26): a pre-rendered `NoiseTexture` image (two noise patterns in its red and green channels), sampled with `constexpr sampler s(address::repeat, filter::linear)` at `uv = position / size` so it tiles and is size-independent. Offset the layer sample by `(noise.rg − 0.5) * amount`. Domain warping = sample the noise once to get `q`, sample again at `uv + q`, use that as the offset → "organic, flowing blobs". Animate by adding time to the noise-sampling position (narration; code in the sample project).
 
+⚠️ *Ours, learned on FitTap (2026-10-28):* the texture + layer-remap version rendered on the simulator and came out blank on a device, with no console error. Shaders with `.image` arguments and far-reaching `layer.sample` calls are the two device-sensitive inputs; a fill shader that computes its own noise (integer-hashed value noise, exact at any `time`) and paints its own colors from `.color` arguments behaves the same everywhere — see `BackgroundWarp.metal` in the design system. Check a shader on a device before trusting the simulator.
+
 **Ripple** (WWDC24): a radial sine wave with exponential decay, delayed by `distance / speed` so it propagates outward; origin from a `UIGestureRecognizerRepresentable` wrapping `UILongPressGestureRecognizer(minimumPressDuration: 0)`; debug UI with sliders scrubbing time/amplitude/frequency/decay — Apple's advice: build such editors in previews because the modifier itself is stateless.
 
 ---

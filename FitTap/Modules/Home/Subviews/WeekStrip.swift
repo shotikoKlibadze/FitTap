@@ -50,6 +50,13 @@ struct WeekStrip: View {
                         .overlay { selectionRing(in: week) }
                         .frame(height: WeekStripDayCell.height + shadowRoom, alignment: .top)
                         .containerRelativeFrame(.horizontal)
+                        // A week shrinks a little as it leaves and grows back
+                        // as it settles, so paging reads as depth, not a slide.
+                        .scrollTransition(axis: .horizontal) { content, phase in
+                            content
+                                .scaleEffect(1 - abs(phase.value) * 0.12)
+                                .opacity(1 - abs(phase.value) * 0.3)
+                        }
                     }
                 }
                 .scrollTargetLayout()

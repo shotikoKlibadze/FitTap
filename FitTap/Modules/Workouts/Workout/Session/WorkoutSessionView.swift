@@ -11,6 +11,8 @@ import SwiftUI
 /// a slot in the title row, so the card can grow over the progress card.
 struct WorkoutSessionView: View {
     let title: String
+    /// The workout's color — the background breathes in it.
+    let color: Color
     @Binding var isConfirmingExit: Bool
     let hasLoggedSets: Bool
     let exitMessage: String
@@ -40,6 +42,11 @@ struct WorkoutSessionView: View {
     /// The title and the ✕ sit further in, like a bar over the content.
     private let titleInset: CGFloat = 16
     private let closeSize = GlassCloseConfirmation.collapsedSize
+    /// Gap between the summary card and the scrolling content.
+    private let headerBottomPadding: CGFloat = 12
+
+    /// The summary card's height, so the cards know where its top is.
+    @State private var summaryHeight: CGFloat = 0
 
     var body: some View {
         ScrollView {
@@ -57,6 +64,20 @@ struct WorkoutSessionView: View {
                             onTapSuggestion: {},
                             onRemoveExercise: {},
                         )
+                        // A card scrolls under the summary untouched; once its
+                        // top reaches the summary's top it holds there,
+                        // shrinks, blurs and fades — the cards stack away
+                        // behind the summary instead of scrolling on past it.
+                        // The scroll space starts at the header's bottom, so
+                        // the summary's top is `summaryTop` above zero.
+                        .visualEffect { [summaryTop] content, proxy in
+                            let distance = min(0, proxy.frame(in: .scrollView(axis: .vertical)).minY + summaryTop)
+                            return content
+                                .scaleEffect(1 + distance / 700)
+                                .offset(y: -distance / 1.25)
+                                .blur(radius: -distance / 50)
+                                .opacity(1 + distance / 140)
+                        }
                     }
                 }
             }
@@ -86,7 +107,7 @@ struct WorkoutSessionView: View {
                 .padding(.top, 8 + (titleRowHeight - closeSize) / 2)
                 .padding(.trailing, titleInset)
         }
-        .background(FTColors.background)
+        .background { MeshBackground(tint: color) }
     }
 
     /// Nothing logged: a plain ✕ that leaves. Something logged: the ✕ that
@@ -112,6 +133,11 @@ struct WorkoutSessionView: View {
         withAnimation(.smooth(duration: 0.3)) { isConfirmingExit = false }
     }
 
+    /// How far above the scroll area's top the summary card's top sits.
+    private var summaryTop: CGFloat {
+        summaryHeight + headerBottomPadding
+    }
+
     /// Pinned over the cards, with no background of its own.
     private var header: some View {
         VStack(spacing: 16) {
@@ -135,10 +161,11 @@ struct WorkoutSessionView: View {
                 subtitle: progressSubtitle,
                 startedAt: startedAt,
             )
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { summaryHeight = $0 }
         }
         .padding(.horizontal, gutter)
         .padding(.top, 8)
-        .padding(.bottom, 12)
+        .padding(.bottom, headerBottomPadding)
     }
 }
 
@@ -161,6 +188,7 @@ private struct WorkoutSessionViewPreviewHost: View {
     var body: some View {
         WorkoutSessionView(
             title: "Push Day",
+            color: .pink,
             isConfirmingExit: $isConfirmingExit,
             hasLoggedSets: loggedCount > 0,
             exitMessage: "You've logged \(loggedCount) of \(setCount) sets. Unfinished workouts aren't saved.",

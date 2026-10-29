@@ -43,6 +43,15 @@ struct ExerciseCard: View {
     /// Fired when the last set is removed — the card has nothing left to show.
     let onRemoveExercise: () -> Void
 
+    /// Working out, checking a set sends a ripple across the card from its
+    /// check. The origin is read from the check's frame in the card's space;
+    /// the count restarts the ripple.
+    @State private var checkFrames: [UUID: CGRect] = [:]
+    @State private var rippleOrigin = CGPoint.zero
+    @State private var rippleCount = 0
+
+    private static let cardSpace = "exerciseCard"
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -67,6 +76,8 @@ struct ExerciseCard: View {
             .padding(14)
         }
         .elevatedSurface(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .coordinateSpace(.named(Self.cardSpace))
+        .rippleEffect(at: rippleOrigin, trigger: rippleCount)
     }
 
     private var isEditing: Bool { mode == .edit }
@@ -128,6 +139,9 @@ struct ExerciseCard: View {
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             case .session:
                 CheckmarkButton(isChecked: set.loggedAt != nil) { toggleLogged(set.id) }
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.cardSpace)) } action: {
+                        checkFrames[set.id] = $0
+                    }
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             case .view:
                 EmptyView()
@@ -256,12 +270,17 @@ struct ExerciseCard: View {
 
     // MARK: - Working out
 
-    /// Logs the set now, or takes the log back.
+    /// Logs the set now — with a ripple out from its check — or takes the
+    /// log back, quietly.
     private func toggleLogged(_ id: UUID) {
         guard let index = workoutExercise.sets.firstIndex(where: { $0.id == id }) else { return }
+        let logging = workoutExercise.sets[index].loggedAt == nil
         withAnimation(.smooth(duration: 0.2)) {
-            workoutExercise.sets[index].loggedAt = workoutExercise.sets[index].loggedAt == nil ? .now : nil
+            workoutExercise.sets[index].loggedAt = logging ? .now : nil
         }
+        guard logging, let frame = checkFrames[id] else { return }
+        rippleOrigin = CGPoint(x: frame.midX, y: frame.midY)
+        rippleCount += 1
     }
 }
 
