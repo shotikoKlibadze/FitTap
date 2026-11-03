@@ -118,6 +118,7 @@ final class WorkoutSessionScreenModel {
         for exercise in session.workout.exercises.indices {
             for set in session.workout.exercises[exercise].sets.indices {
                 session.workout.exercises[exercise].sets[set].loggedAt = nil
+                session.workout.exercises[exercise].sets[set].failed = false
             }
         }
         session.startedAt = nil

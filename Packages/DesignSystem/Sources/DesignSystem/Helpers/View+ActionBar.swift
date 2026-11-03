@@ -19,8 +19,17 @@ public extension View {
 private struct BottomActionBarModifier<Bar: View>: ViewModifier {
     let bar: Bar
 
+    /// A dimmed overlay inside is up (`hidesEdgeFades`): the fade steps aside
+    /// so it doesn't sit undimmed on top of the dim as a band.
+    @State private var fadeHidden = false
+
     func body(content: Content) -> some View {
         content
+            .onPreferenceChange(EdgeFadesHiddenKey.self) { hidden in
+                MainActor.assumeIsolated {
+                    withAnimation(.smooth(duration: 0.3)) { fadeHidden = hidden }
+                }
+            }
             .safeAreaInset(edge: .bottom) {
                 bar
                     .padding(.horizontal, 16)
@@ -28,6 +37,7 @@ private struct BottomActionBarModifier<Bar: View>: ViewModifier {
                         // Runs down past the home indicator so nothing shows below the button.
                         FTGradients.fadeBottom
                             .ignoresSafeArea(edges: .bottom)
+                            .opacity(fadeHidden ? 0 : 1)
                             .allowsHitTesting(false)
                     }
             }

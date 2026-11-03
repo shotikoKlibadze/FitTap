@@ -2,20 +2,33 @@ import SwiftUI
 
 /// One day of the week strip: the day number on top, the workout title turned
 /// on its side in the middle, the workout's color dot at the bottom. `status`
-/// decides the border and the dot. The cell doesn't know it's selected — the
-/// strip slides one ring in `shape` over whichever cell is.
+/// decides the dot and whether the cell is raised. No cell draws a border;
+/// the only outline in the strip is the green selection ring, which the strip
+/// slides in `shape` over whichever cell is selected — the cell doesn't know.
+///
+/// A day with a workout (done, planned or missed) is a raised card with a
+/// shadow. An empty day is the same fill lying flat, so the days that matter
+/// stand up out of the week.
 public struct WeekStripDayCell: View {
     public enum Status: Hashable {
-        /// Today or a future day with nothing planned — just the number.
+        /// Today or a future day with nothing planned — just the number, flat.
         case free
-        /// A past day with nothing logged — bordered, no dot.
+        /// A past day with nothing logged — flat, no dot.
         case passed
-        /// A workout planned for a later day — dashed border, ring dot.
+        /// A workout planned for a later day — raised, ring dot.
         case planned
-        /// A logged workout — bordered, filled dot.
+        /// A logged workout — raised, filled dot.
         case done
-        /// Planned but never logged — bordered, red dashed ring.
+        /// Planned but never logged — raised, red dashed ring dot.
         case missed
+
+        /// A workout sits on this day, so the cell is raised.
+        var hasWorkout: Bool {
+            switch self {
+            case .planned, .done, .missed: true
+            case .free, .passed: false
+            }
+        }
     }
 
     let day: Int
@@ -61,20 +74,18 @@ public struct WeekStripDayCell: View {
             .padding(.horizontal, 4)
             .frame(maxWidth: .infinity)
             .frame(height: Self.height)
-            .elevatedSurface(in: shape, elevation: .compact, dashed: status == .planned)
-            .overlay { border }
+            .background { surface }
             .contentShape(shape)
         }
         .buttonStyle(.press)
     }
 
     @ViewBuilder
-    private var border: some View {
-        switch status {
-        case .done, .passed, .missed:
-            shape.strokeBorder(FTColors.separator, lineWidth: 1)
-        case .free, .planned:
-            EmptyView()
+    private var surface: some View {
+        if status.hasWorkout {
+            Color.clear.elevatedSurface(in: shape, elevation: .compact)
+        } else {
+            shape.fill(FTColors.surface)
         }
     }
 

@@ -97,7 +97,7 @@ struct WorkoutView: View {
             }
             .animation(.smooth(duration: 0.3), value: exercises.map(\.id))
         }
-        .contentMargins(.horizontal, 8, for: .scrollContent)
+        .contentMargins(.horizontal, 16, for: .scrollContent)
         // Room to scroll the last card clear of the bottom button and its fade.
         .contentMargins(.bottom, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
@@ -112,6 +112,9 @@ struct WorkoutView: View {
                     .transition(.opacity)
             }
         }
+        // The toolbar and bottom fades sit above this dim; they step aside
+        // while it's up instead of showing as bands.
+        .hidesEdgeFades(isPlanning)
         .bottomActionBar {
             HStack(spacing: 10) {
                 if hasPlanSlot {

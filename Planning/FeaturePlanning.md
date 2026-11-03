@@ -32,8 +32,47 @@ The core of the app. Everything else exists to make this faster or to show what 
 | **Cardio and timed entries** | Duration, optional distance, optional count (rounds, laps). (`CardioEntry` exists.) | Running, rowing, MMA rounds, CrossFit WODs all fit one shape. |
 | **Per-activity cardio metrics** | Predefined cardio exercises each carry their own metric shape: running = distance + time + pace, boxing = rounds × minutes per round, rowing = distance + intensity, and so on. The logging UI shows only that activity's fields. User-defined cardio activities maybe later. | "Rounds" on a run or "pace" on sparring is noise; each activity asks only what the user actually tracks. |
 | **Bodyweight exercises** | Reps only, optional added weight. (`ExerciseKind.bodyweight`.) | Pull-ups and dips without a fake weight field. |
+| **Cardio done check** | Cardio rows get the same check as sets (tap to log, hold to fail), so a finished run also gets the "How did it feel?" tab. Parked earlier; needed before cardio stats mean anything. | One tap closes a run the way it closes a set. |
 | **Rest timer** | Starts automatically after a set is logged. Shows on Watch and Lock Screen / Live Activity. | Zero taps; the user never opens a stopwatch. |
+| **Exercise difficulty tray** | When every set on an exercise card is marked done, a small tray slides down from *behind* the card (outside it, bottom corners matching the card's radius, top edge hidden under the card) asking **Easy · Medium · Hard**. One tap stores the rating on that exercise for this session and the tray tucks back. Optional: ignoring it is fine, and it retracts if the user adds another set. If any set carries a failure flag, "Hard" is preselected. ⚠️ Overlaps the session-level **Effort rating** (§5): decide whether the session score is derived from these instead of asked separately. | Fills the gap the failure flag can't: "no failures" doesn't separate *barely made it* from *easy*. "Easy" twice in a row is the clearest signal to go up in weight. One tap, only once per exercise. |
 | **Quick notes** | Optional one-line note on a set or session ("left knee"). | Depth is opt-in; it's hidden until tapped. |
+
+### Cardio reference: a real run (2026-10-31)
+
+Shota's indoor run, recorded by Apple Watch in Apple's Workout app. It's the baseline for what a cardio session holds and what FitTap should show of it. Screenshots: [summary](References/Cardio/2026-10-31-indoor-run-summary.png), [splits](References/Cardio/2026-10-31-indoor-run-splits.png), [heart rate](References/Cardio/2026-10-31-indoor-run-heart-rate.png).
+
+**What the Watch recorded**
+
+| Group | Values |
+|---|---|
+| Session | Indoor Run, Tbilisi, 12:39–13:38, Apple Watch |
+| Conditions | 17°, 65 % humidity |
+| Totals | Workout time 0:59:15 · distance 7.50 km · active 607 kcal · total 712 kcal |
+| Averages | Cadence 148 spm · pace 7'54"/km · heart rate 153 bpm |
+| Effort | 7 / 10, "Hard" (user-rated on the Watch) |
+| Splits, per km | 1: 8:35, 127 bpm · 2: 7:32, 150 · 3: 7:49, 159 · 4: 7:37, 156 · 5: 8:26, 154 (time, pace and HR per split) |
+| Heart rate | Full curve, peak 182, 153 avg |
+| Awards | Fastest 5K 00:36:46 · 5K Run · First Running Workout |
+
+**What FitTap takes from it** (calm screens: no metric without a purpose)
+
+- **The run card shows four numbers:** distance, time, pace, average heart rate. Everything else is one level down or not shown.
+- **One level down (exercise detail):** splits and the heart-rate curve, for someone who wants them.
+- **Not shown:** calories (active and total), cadence, weather, humidity. They change no decision for our user. Calories may return with nutrition.
+- **Stats:** pace and distance over time per activity ("Cardio trends", §4). A **record day** when pace or distance beats the user's best; Apple's "Fastest 5K" is the same idea.
+- **Effort:** Apple asks 1–10; FitTap asks Easy / Medium / Hard. Map in both directions when syncing: Easy 1–4, Medium 5–6, Hard 7–10, and Hard writes 7. ⚠️ Confirm the HealthKit effort-score API before building.
+
+**How it gets in: zero taps**
+
+- **Import first.** A run already recorded by Apple's Workout app is matched to a planned FitTap cardio session by time overlap, or added as a done session when nothing was planned ("Import native Workout app sessions", §6). Logging a run in FitTap should usually mean confirming what the Watch already has.
+- **Manual entry stays the escape hatch:** distance and time from preset chips; pace is derived, never typed.
+
+**What the model needs** (`CardioEntry` today: duration, speed, distance, count, started at)
+
+- `averageHeartRate` and the HealthKit workout link (`WorkoutSession.healthKitWorkoutID` exists) so splits and the curve are read back, never stored.
+- Indoor or outdoor; it changes how distance is trusted.
+- Splits and the HR curve stay in HealthKit and are fetched on the detail screen.
+- Store pace as derived from distance and time. Don't add a field for it.
 
 ## 2. Workouts and templates
 

@@ -35,6 +35,7 @@ FitTap, my iOS gym + diet logger, is the training ground and portfolio where eve
 - **No tests unless asked.** Don't write test code and don't run tests unless I explicitly tell you to. Keep the architecture testable, but the decision to test is mine.
 - Prefer clear, testable architecture over quick hacks.
 - Explain non-obvious decisions briefly; I'm learning from this.
+- **Plain-English guides.** When I wrote code myself, I remembered what was where and why because I typed it. Agents do that work now, so every system that gets designed or built also gets a colourful, plain-English guide (published as an artifact) explaining its structure, its wiring, and the reasons behind it. The links live in [Guides/README.md](Guides/README.md), so I can open any guide myself or ask for it.
 - Keep AI logic separate and testable (tools, rules, evals).
 - Flag anything in the agent setup that could be improved.
 - **Skill deviations are process defects.** The agent setup here is itself a deliverable — meant to be reused on other codebases and by other companies. When produced work deviates from a skill, we address it without excuses, find the root cause, and change the skill or process so the same deviation cannot happen again.

@@ -6,7 +6,8 @@ import DesignSystem
 /// custom number panel). Every part is a static height, so it's computed,
 /// not measured.
 enum SetValuePickerMetrics {
-    static let horizontalPadding: CGFloat = 20
+    /// The screen gutter, as on every screen.
+    static let horizontalPadding: CGFloat = 16
     static let bottomPadding: CGFloat = 8
     /// Title (title3) + 4pt + subtitle (footnote) at default text size.
     static let headerHeight: CGFloat = 47

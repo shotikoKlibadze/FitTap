@@ -26,7 +26,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 ProfileHeader(image: nil, title: profileTitle, subtitle: profileSubtitle)
                     .padding(.bottom, 22)
-                SectionHeader(title: weekTitle)
+                SectionTitle(title: weekTitle)
                     .contentTransition(.opacity)
                     .padding(.bottom, 12)
                 WeekStrip(
@@ -34,6 +34,9 @@ struct HomeView: View {
                     currentWeek: sliding($currentWeek, forward: $weekForward),
                     selectedDay: $selectedDay,
                 )
+                // Out of the screen gutter to the edges; the strip insets
+                // its own weeks back onto it.
+                .padding(.horizontal, -WeekStrip.edgeInset)
                 .padding(.bottom, 14)
                 // A tap changes the day section in place: its header and card
                 // crossfade. A swipe slides the week list as one block, so the
@@ -50,7 +53,7 @@ struct HomeView: View {
             }
             .animation(.smooth(duration: 0.3), value: selectedDay)
         }
-        .contentMargins(.horizontal, 8, for: .scrollContent)
+        .contentMargins(.horizontal, 16, for: .scrollContent)
         .contentMargins(.bottom, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
         .background(FTColors.background)
@@ -58,11 +61,11 @@ struct HomeView: View {
 
     private var daySection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(title: dayTitle ?? "")
+            SectionTitle(title: dayTitle ?? "")
                 .contentTransition(.opacity)
                 .padding(.bottom, 8)
             // Keyed by what the card shows, not by the day: moving between
-            // two empty days keeps the same "Plan workout" card still, and
+            // two empty days keeps the same add card still, and
             // only a real change crossfades.
             ZStack(alignment: .top) {
                 dayCard
@@ -95,7 +98,7 @@ struct HomeView: View {
 
     private var weekList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(title: weekListTitle)
+            SectionTitle(title: weekListTitle)
                 .padding(.bottom, 8)
             VStack(spacing: 9) {
                 ForEach(weekItems) { item in

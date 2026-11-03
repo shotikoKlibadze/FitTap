@@ -38,8 +38,8 @@ struct WorkoutSessionView: View {
     private let titleRowHeight: CGFloat = 44
     /// The cards' inset from the screen edge — the summary card uses the
     /// same, so it lines up with the exercise cards.
-    private let gutter: CGFloat = 8
-    /// The title and the ✕ sit further in, like a bar over the content.
+    private let gutter: CGFloat = 16
+    /// The title and the ✕ line up with the cards.
     private let titleInset: CGFloat = 16
     private let closeSize = GlassCloseConfirmation.collapsedSize
     /// Gap between the summary card and the scrolling content.
@@ -53,17 +53,35 @@ struct WorkoutSessionView: View {
             VStack(spacing: 12) {
                 ForEach($exercises) { $workoutExercise in
                     if let exercise = catalog[workoutExercise.exerciseID] {
-                        ExerciseCard(
-                            exercise: exercise,
-                            workoutExercise: $workoutExercise,
-                            mode: .session,
-                            onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
-                            onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
-                            onTapDuration: { onTapDuration(workoutExercise.id) },
-                            onTapSpeed: { onTapSpeed(workoutExercise.id) },
-                            onTapSuggestion: {},
-                            onRemoveExercise: {},
-                        )
+                        // The card, and under it — once every set is checked —
+                        // the "How did it feel?" tab tucked behind its bottom
+                        // edge. Unchecking a set slides the tab back up. The
+                        // two move as one piece below.
+                        VStack(spacing: 0) {
+                            ExerciseCard(
+                                exercise: exercise,
+                                workoutExercise: $workoutExercise,
+                                mode: .session,
+                                onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
+                                onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
+                                onTapDuration: { onTapDuration(workoutExercise.id) },
+                                onTapSpeed: { onTapSpeed(workoutExercise.id) },
+                                onTapSuggestion: {},
+                                onRemoveExercise: {},
+                            )
+                            .zIndex(1)
+                            if workoutExercise.allSetsLogged {
+                                RatingStrip(
+                                    prompt: "How did it feel?",
+                                    options: Effort.ratingOptions,
+                                    selectedID: $workoutExercise.effort.ratingID,
+                                )
+                                .padding(.horizontal, RatingStrip.sideInset)
+                                .padding(.top, -RatingStrip.cardOverlap)
+                                .transition(.move(edge: .top))
+                            }
+                        }
+                        .animation(.spring(duration: 0.4), value: workoutExercise.allSetsLogged)
                         // A card scrolls under the summary untouched; once its
                         // top reaches the summary's top it holds there,
                         // shrinks, blurs and fades — the cards stack away
@@ -121,7 +139,7 @@ struct WorkoutSessionView: View {
                 message: exitMessage,
                 actions: [
                     AppAlertAction("End Workout", style: .destructive, action: onEndWorkout),
-                    AppAlertAction("Keep Going"),
+                    AppAlertAction("Keep Going", style: .primary),
                 ],
             )
         } else {

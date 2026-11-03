@@ -10,7 +10,8 @@ import SwiftUI
 /// the right — with nothing to tap but the suggestion wand. In `.session`,
 /// while working out, the pills stay so a set's values can still be
 /// adjusted, each row ends in a check instead of a remove button, there's no
-/// "+ Add Set", and a checked set's values dim. Switching mode inside
+/// "+ Add Set", and a logged set's values dim. Holding the check offers ✓ or
+/// ✕, so a set can be logged as failed. Switching mode inside
 /// `withAnimation` morphs the card in place: pills fade to text, the row's
 /// trailing button swaps, "+ Add Set" fades, the rows tighten or loosen.
 ///
@@ -138,7 +139,7 @@ struct ExerciseCard: View {
                 removeButton { removeSet(set.id) }
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             case .session:
-                CheckmarkButton(isChecked: set.loggedAt != nil) { toggleLogged(set.id) }
+                CheckmarkButton(status: checkStatus(set)) { setStatus(set.id, $0) }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.cardSpace)) } action: {
                         checkFrames[set.id] = $0
                     }
@@ -270,15 +271,32 @@ struct ExerciseCard: View {
 
     // MARK: - Working out
 
-    /// Logs the set now — with a ripple out from its check — or takes the
-    /// log back, quietly.
-    private func toggleLogged(_ id: UUID) {
+    /// Failed beats done: a failed set is logged too, with the flag on top.
+    private func checkStatus(_ set: SetEntry) -> CheckmarkButton.Status {
+        guard set.loggedAt != nil else { return .open }
+        return set.failed ? .failed : .done
+    }
+
+    /// Writes the check's pick onto the set. Completing it sends a ripple
+    /// out from its check; failing it or taking a log back stays quiet. A
+    /// set already logged keeps its time when only the flag changes.
+    private func setStatus(_ id: UUID, _ status: CheckmarkButton.Status) {
         guard let index = workoutExercise.sets.firstIndex(where: { $0.id == id }) else { return }
-        let logging = workoutExercise.sets[index].loggedAt == nil
+        let wasDone = checkStatus(workoutExercise.sets[index]) == .done
         withAnimation(.smooth(duration: 0.2)) {
-            workoutExercise.sets[index].loggedAt = logging ? .now : nil
+            switch status {
+            case .open:
+                workoutExercise.sets[index].loggedAt = nil
+                workoutExercise.sets[index].failed = false
+            case .done:
+                workoutExercise.sets[index].loggedAt = workoutExercise.sets[index].loggedAt ?? .now
+                workoutExercise.sets[index].failed = false
+            case .failed:
+                workoutExercise.sets[index].loggedAt = workoutExercise.sets[index].loggedAt ?? .now
+                workoutExercise.sets[index].failed = true
+            }
         }
-        guard logging, let frame = checkFrames[id] else { return }
+        guard status == .done, !wasDone, let frame = checkFrames[id] else { return }
         rippleOrigin = CGPoint(x: frame.midX, y: frame.midY)
         rippleCount += 1
     }

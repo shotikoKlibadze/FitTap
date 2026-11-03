@@ -16,6 +16,10 @@ struct SetEntry: Identifiable, Hashable, Codable, Sendable {
     /// which are derived from consecutive `loggedAt` values, never stored.
     /// See Knowledge/iOSHealthKit/README.md §2.
     var loggedAt: Date?
+    /// The set was attempted but not completed as planned — the user held
+    /// the check and chose ✕. It's still logged (`loggedAt` is set), so it
+    /// counts toward progress; stats read this to mark the session.
+    var failed: Bool
 
     init(
         id: UUID = UUID(),
@@ -23,11 +27,13 @@ struct SetEntry: Identifiable, Hashable, Codable, Sendable {
         reps: Int,
         weight: Double? = nil,
         loggedAt: Date? = nil,
+        failed: Bool = false,
     ) {
         self.id = id
         self.order = order
         self.reps = reps
         self.weight = weight
         self.loggedAt = loggedAt
+        self.failed = failed
     }
 }

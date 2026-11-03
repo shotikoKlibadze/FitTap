@@ -86,7 +86,7 @@ private struct NewExerciseViewPreviewHost: View {
             onTapCreate: {},
         )
         .padding(.top, BottomSheetMetrics.dragAreaHeight)
-        .background(FTColors.surface)
+        .background(FTColors.sheetSurface)
         .frame(maxHeight: .infinity, alignment: .bottom)
         .background(FTColors.background)
     }

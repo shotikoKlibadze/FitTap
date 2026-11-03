@@ -80,10 +80,17 @@ public struct ChipPicker<Option: Hashable>: View {
             ZStack {
                 shape.fill(selection == nil ? Color.clear : FTColors.secondary)
                 if isRaised {
-                    shape.fill(FTGradients.elevatedSurfaceBackground)
+                    shape.fill(FTColors.surface)
                 }
             }
-            .shadow(color: isOpen ? FTColors.elevatedSurfaceShadow : .clear, radius: 14, x: 0, y: 12)
+            // Same shadow as `elevatedSurface(in:)`, read from its level so
+            // the open picker and the cards never drift apart.
+            .shadow(
+                color: isOpen ? FTColors.elevatedSurfaceShadow : .clear,
+                radius: SurfaceElevation.regular.shadowRadius,
+                x: 0,
+                y: SurfaceElevation.regular.shadowOffset,
+            )
         }
         .overlay { border }
         .contentShape(shape)

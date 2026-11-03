@@ -83,14 +83,22 @@ public struct MonthCalendar: View {
         return Array(symbols[start...] + symbols[..<start])
     }
 
-    /// The month's days, led by blanks so the first lands under its weekday.
+    /// The month's days, led by blanks so the first lands under its weekday
+    /// and followed by blanks to six full rows — so the calendar keeps one
+    /// height as the month changes, instead of jumping between five rows
+    /// and six.
     private var cells: [Date?] {
         guard let range = calendar.range(of: .day, in: .month, for: month) else { return [] }
         let firstWeekday = calendar.component(.weekday, from: month)
         let leading = (firstWeekday - calendar.firstWeekday + 7) % 7
         let days = range.compactMap { calendar.date(byAdding: .day, value: $0 - 1, to: month) }
-        return Array(repeating: nil, count: leading) + days
+        let filled = Array(repeating: nil, count: leading) + days
+        let trailing = max(Self.rowCount * 7 - filled.count, 0)
+        return filled + Array(repeating: nil, count: trailing)
     }
+
+    /// Rows the grid always shows — the most any month needs.
+    private static let rowCount = 6
 
     private var canGoBack: Bool {
         guard let todaysMonth = calendar.dateInterval(of: .month, for: today)?.start else { return false }
@@ -136,7 +144,9 @@ private struct MonthCalendarDay: View {
 
     private var textColor: Color {
         if isSelected { return FTCoreColors.offWhite }
-        if isPast { return FTColors.separator }
+        // Readable but clearly unavailable: the subtitle grey, not the
+        // separator, which is meant for faint lines and disappears as text.
+        if isPast { return FTColors.textSecondary }
         if isToday { return FTColors.greenAccent }
         return FTColors.textPrimary
     }

@@ -3,6 +3,10 @@ import SwiftUI
 
 /// Content of the plan-a-day sheet: a title naming the day, then "New
 /// workout" and every workout as a pickable row, scrolling inside the sheet.
+///
+/// The title floats over the list: rows scroll up under it and stay faintly
+/// visible through the fade behind it, instead of being cut off at a hard
+/// edge below the subtitle.
 struct PlanDayView: View {
     let title: String
     let items: [PlanDayItem]
@@ -10,43 +14,56 @@ struct PlanDayView: View {
     let onPick: (UUID) -> Void
     let onTapNewWorkout: () -> Void
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(FTFonts.title3Semibold)
-                    .foregroundStyle(FTColors.textPrimary)
-                    .lineLimit(1)
-                Text("Pick one of your workouts.")
-                    .font(FTFonts.subheadline)
-                    .foregroundStyle(FTColors.textSecondary)
-            }
-            .padding(.horizontal, 20)
+    /// How far the fade reaches past the subtitle, so a row dissolves as it
+    /// passes under the title rather than at its edge.
+    private let fadeOverhang: CGFloat = 14
 
-            ScrollView {
-                VStack(spacing: 10) {
-                    CardAddButton(title: "New workout", layout: .inline, action: onTapNewWorkout)
-                    ForEach(items) { item in
-                        WorkoutListItem(
-                            title: item.title,
-                            subtitle: item.subtitle,
-                            icon: Image(systemName: item.iconName),
-                            color: item.color,
-                            isSelected: item.id == pickedID,
-                        ) {
-                            onPick(item.id)
-                        }
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 10) {
+                CardAddButton(title: "New workout", layout: .inline, action: onTapNewWorkout)
+                ForEach(items) { item in
+                    WorkoutListItem(
+                        title: item.title,
+                        subtitle: item.subtitle,
+                        icon: Image(systemName: item.iconName),
+                        color: item.color,
+                        isSelected: item.id == pickedID,
+                    ) {
+                        onPick(item.id)
                     }
                 }
             }
-            .contentMargins(.horizontal, 12, for: .scrollContent)
-            .contentMargins(.bottom, 24, for: .scrollContent)
-            // A list cut off by the sheet: flash the indicator once so it
-            // reads as more below.
-            .scrollIndicators(.visible)
-            .scrollIndicatorsFlash(onAppear: true)
+        }
+        .contentMargins(.horizontal, 16, for: .scrollContent)
+        .contentMargins(.bottom, 24, for: .scrollContent)
+        .scrollIndicators(.hidden)
+        .safeAreaInset(edge: .top, spacing: 14) {
+            header
+                .background {
+                    // The sheet's own fade, not a solid fill: solid behind
+                    // the title's top, thinning toward the subtitle and past
+                    // it, so rows show faintly as they slide under.
+                    FTGradients.sheetFadeTop
+                        .padding(.bottom, -fadeOverhang)
+                        .allowsHitTesting(false)
+                }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(FTFonts.title3Semibold)
+                .foregroundStyle(FTColors.textPrimary)
+                .lineLimit(1)
+            Text("Pick one of your workouts.")
+                .font(FTFonts.subheadline)
+                .foregroundStyle(FTColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 20)
     }
 }
 
@@ -65,7 +82,7 @@ private struct PlanDayViewPreviewHost: View {
         )
         .padding(.top, 20)
         .frame(height: PlanDayMetrics.sheetHeight)
-        .background(FTColors.surface)
+        .background(FTColors.sheetSurface)
         .frame(maxHeight: .infinity, alignment: .bottom)
         .background(FTColors.background)
     }

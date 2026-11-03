@@ -4,7 +4,8 @@ import DesignSystem
 /// The New Exercise sheet is one fixed height. Every part is a static
 /// height, so it's computed, not measured.
 enum NewExerciseMetrics {
-    static let horizontalPadding: CGFloat = 20
+    /// The screen gutter, as on every screen.
+    static let horizontalPadding: CGFloat = 16
     static let bottomPadding: CGFloat = 8
     static let sectionSpacing: CGFloat = 16
     /// "New Exercise" in title3 at default text size.

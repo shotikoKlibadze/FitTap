@@ -63,11 +63,12 @@ struct BottomSheet<Content: View>: View {
             .frame(height: height - BottomSheetMetrics.dragAreaHeight, alignment: .top)
             .padding(.top, BottomSheetMetrics.dragAreaHeight)
             .background {
-                // A raised surface like the cards: in dark mode the lit top
-                // edge and hairline are what separate the sheet from a black
-                // screen; in light mode it's the flat surface and its shadow.
-                Color.clear
-                    .elevatedSurface(in: shape)
+                // A flat, opaque body — no blur, so nothing behind bleeds
+                // through the numbers. In dark mode it's the darkest thing on
+                // screen over the lightening scrim, which makes it the focus;
+                // in light mode it's white over a darkened screen.
+                shape
+                    .fill(FTColors.sheetSurface)
                     .ignoresSafeArea(edges: .bottom)
             }
             .overlay(alignment: .top) { handle }

@@ -29,7 +29,7 @@ Where each part of the setup lives decides who gets it and which version wins.
 
 | Today in the repo | Target layer |
 |---|---|
-| architecture, navigation, dependency-injection, design-system skills · toolbar-on-Screen hook | project |
+| architecture, navigation, dependency-injection, design-system, screen-layout skills · toolbar-on-Screen hook | project |
 | skill-authoring, previews, code-style skills · stage-don't-commit hooks · previews-in-DEBUG hook · compact context restore | plugin (generic once FitTap names are isolated) |
 | commit guard · future secrets redaction | enterprise, once there is a team to enforce it on |
 

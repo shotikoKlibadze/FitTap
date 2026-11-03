@@ -3,7 +3,9 @@ import SwiftUI
 /// A full-screen mode's close button that asks before leaving: the glass ✕
 /// morphs, at its own corner, into a glass card with a title, a message and
 /// flat pill actions — one Liquid Glass shape changing size. It looks like
-/// `AppAlert` and takes the same `AppAlertAction`s.
+/// `AppAlert`: the card is tinted with the same `sheetSurface` the alert is
+/// filled with, but stays glass so the morph works. It takes the same
+/// `AppAlertAction`s.
 ///
 /// The one exception to "every alert is a centered `AppAlert`": only a mode's
 /// own close button gets this (see the design-system skill's alerts rules).
@@ -35,7 +37,10 @@ public struct GlassCloseConfirmation: View {
         GlassEffectContainer {
             if isExpanded {
                 card
-                    .glassEffect(.regular, in: cardShape)
+                    // Tinted to the bottom sheet's body so it matches the
+                    // other overlays. It stays glass, because the ✕ to card
+                    // morph only works glass to glass.
+                    .glassEffect(.regular.tint(FTColors.sheetSurface), in: cardShape)
                     .glassEffectID(glassID, in: glass)
             } else {
                 Button(action: expand) {

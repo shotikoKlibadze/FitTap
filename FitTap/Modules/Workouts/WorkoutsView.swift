@@ -10,7 +10,7 @@ struct WorkoutsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Workouts")
-                    .font(FTFonts.largeTitle)
+                    .font(FTFonts.largeTitleBold)
                     .foregroundStyle(FTColors.textPrimary)
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -30,7 +30,7 @@ struct WorkoutsView: View {
                 }
             }
         }
-        .contentMargins(.horizontal, 8, for: .scrollContent)
+        .contentMargins(.horizontal, 16, for: .scrollContent)
         .contentMargins(.bottom, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
         .background(FTColors.background)

@@ -45,7 +45,14 @@ public struct GlassExpander<Content: View>: View {
                 content
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .glassEffect(.regular.tint(FTColors.surfaceSecondary), in: cardShape)
+                    // A solid sheet body under the content. Glass alone
+                    // swallows faint see-through fills (a secondary pill's
+                    // capsule, dimmed numbers); on this body they draw exactly
+                    // as they do on a bottom sheet.
+                    .background(cardShape.fill(FTColors.sheetSurface))
+                    // Pill and card share the overlays' body colour, so the
+                    // morph keeps one tone and matches sheets and alerts.
+                    .glassEffect(.regular.tint(FTColors.sheetSurface), in: cardShape)
                     .glassEffectID(glassID, in: glass)
             } else {
                 Button(action: expand) {
@@ -56,7 +63,7 @@ public struct GlassExpander<Content: View>: View {
                         .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
-                .glassEffect(.regular.tint(FTColors.surface).interactive(), in: .capsule)
+                .glassEffect(.regular.tint(FTColors.sheetSurface).interactive(), in: .capsule)
                 .glassEffectID(glassID, in: glass)
             }
         }

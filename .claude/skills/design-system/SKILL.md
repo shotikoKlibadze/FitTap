@@ -48,6 +48,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 - **Two color layers.** `FTCoreColors` are fixed values that never adapt to light/dark (`offWhite`, `nearBlack`); the semantic `FTColors` are built from them and adapt. Views use `FTColors`. A core color is only for a spot that must stay one color in both modes — text on a fill that doesn't adapt, like the selected green cell. A new fixed value goes into `FTCoreColors` first, then semantic tokens reference it.
 - **Text and icons on green or red fills are always `FTCoreColors.offWhite`**, in both modes — those fills stay dark, so the adaptive `textPrimary` turns near-black on them in light mode. Applies to `green`, `greenAccent` and `red` fills (pills, the selected toggle segment, selected grid cells, checkmarks, the add circle).
 - Fonts are named by **role** (`cardTitle`, `subtitle`, `label`), not by size — pick the role, not the look.
+- Which background and which title role a screen, sheet or section uses is the `screen-layout` skill; this skill owns the tokens and components it names.
 - **Missing token → add the token** (or ask), never inline the value. A one-off value in a view is a defect.
 - The user-assignable `WorkoutColor` palette maps to rendered colors only through `SharedUI/Styling/WorkoutColor+Color.swift`.
 
@@ -69,7 +70,10 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 ## Hard rules — elevation
 
 - **A raised surface on the screen background uses `.elevatedSurface(in: shape)`** — cards, input fields, the type switcher, picker cards. Never a hand-rolled fill + shadow.
-- Its look comes only from adaptive tokens (`FTColors.elevatedSurface*`, `FTGradients.elevatedSurfaceBackground`): dark mode gets the lit gradient, top highlight and hairline (a shadow can't show on black); light mode resolves to the flat surface with a soft shadow. Never branch on `colorScheme` for it — change the tokens.
+- Its look comes only from adaptive tokens: a flat `FTColors.surface` fill, a 0.5 pt `elevatedSurfaceHairline`, and one `elevatedSurfaceShadow` sized by `SurfaceElevation`. Dark mode sits on a dark gray background (not black), so both modes share this one recipe and only the token values differ. No gradient, no top highlight. Never branch on `colorScheme` for it — change the tokens.
+- A surface that animates and can't call the modifier (the open `ChipPicker`) reads the same tokens and the `SurfaceElevation` shadow values — never its own numbers.
+- **Overlays share one body: `FTColors.sheetSurface`** (the darkest thing on screen in dark mode), over `FTColors.scrim`, which lightens in dark and darkens in light. Bottom sheets and `AppAlert` fill with it. `GlassCloseConfirmation` and `GlassExpander` (the Plan pill and its card) tint their glass with it, because their morphs need glass.
+- **An inline dimmed overlay calls `.hidesEdgeFades(isShown)`** on the content it dims. The toolbar and bottom-bar fades sit above the content and would otherwise show as undimmed bands. Full-screen covers (`appAlert`) don't need it.
 - Controls *inside* a raised surface (pills, ✕, + Add Set) stay flat — no elevation on elevation.
 
 ## Hard rules — alerts

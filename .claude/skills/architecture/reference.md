@@ -69,7 +69,7 @@ struct SomeView: View {
         ScrollView {
             VStack(spacing: 16) { ... }        // no horizontal padding here
         }
-        .contentMargins(.horizontal, 8, for: .scrollContent)   // 8 + system 8 = 16
+        .contentMargins(.horizontal, 16, for: .scrollContent)  // the 16 pt gutter
         .scrollIndicators(.hidden)
         .background(FTColors.background)
     }

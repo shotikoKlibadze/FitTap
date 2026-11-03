@@ -95,12 +95,15 @@ public struct WorkoutSessionCard: View {
     private var border: some View {
         switch status {
         case .done:
-            shape.strokeBorder(FTColors.separator, lineWidth: 1)
+            // No border of its own: a done session is a plain raised card,
+            // lifted by its hairline and shadow. Only planned and missed
+            // sessions are outlined.
+            EmptyView()
         case .planned:
             shape.strokeBorder(FTColors.separator, style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
         case .missed:
             // The gaps between the red dashes show the screen background,
-            // not the surface's lit edge — the border reads as broken.
+            // not the card's hairline — the border reads as broken.
             ZStack {
                 shape.strokeBorder(FTColors.background, lineWidth: 1)
                 shape.strokeBorder(FTColors.red, style: StrokeStyle(lineWidth: 1, dash: [5, 4]))

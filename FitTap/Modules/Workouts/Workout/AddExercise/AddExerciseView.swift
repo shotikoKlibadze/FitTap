@@ -35,7 +35,7 @@ struct AddExerciseView: View {
                 }
             }
         }
-        .contentMargins(.horizontal, 8, for: .scrollContent)
+        .contentMargins(.horizontal, 16, for: .scrollContent)
         .scrollIndicators(.hidden)
         // The filter bar floats: the list scrolls under it and fades out
         // through the gradient behind it.
@@ -80,12 +80,12 @@ struct AddExerciseView: View {
                     }
                 }
             }
-            .contentMargins(.leading, 56, for: .scrollContent)
-            .contentMargins(.trailing, 8, for: .scrollContent)
+            .contentMargins(.leading, 64, for: .scrollContent)
+            .contentMargins(.trailing, 16, for: .scrollContent)
 
             // Opaque block to the screen edge so chips vanish under the button.
             FTColors.background
-                .frame(width: 56)
+                .frame(width: 64)
                 .frame(height: 40)
 
             RoundButton(
@@ -95,7 +95,7 @@ struct AddExerciseView: View {
                 backgroundColor: FTColors.surface, // same fill as the chips
                 action: onTapCreateExercise,
             )
-                .padding(.leading, 8)
+                .padding(.leading, 16)
         }
     }
 

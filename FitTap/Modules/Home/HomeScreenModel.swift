@@ -104,11 +104,12 @@ final class HomeScreenModel {
         return session(on: selectedDay).map { SessionCardItem(session: $0) }
     }
 
-    /// What the add card offers on a day with nothing on it. Always the
-    /// same words — the section header above it names the day.
+    /// What the add card offers on a day with nothing on it: a past day can
+    /// only be logged, today and later can be planned. The section header
+    /// above it names the day.
     var dayAddTitle: String? {
-        guard selectedDay != nil, dayItem == nil else { return nil }
-        return "Plan workout"
+        guard let selectedDay, dayItem == nil else { return nil }
+        return selectedDay < today ? "Log workout" : "Plan workout"
     }
 
     // MARK: - Week list
@@ -129,8 +130,15 @@ final class HomeScreenModel {
 
     // MARK: - Intents
 
+    /// The empty day's add card: a past day opens logging, today and later
+    /// open the plan sheet.
     func didTapPlanWorkout() {
-        planningDay = selectedDay
+        guard let selectedDay else { return }
+        if selectedDay < today {
+            destination = .logWorkout(selectedDay)
+        } else {
+            planningDay = selectedDay
+        }
     }
 
     /// The pick is already saved; this just closes the sheet.

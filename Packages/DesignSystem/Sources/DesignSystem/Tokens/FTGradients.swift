@@ -23,9 +23,10 @@ public enum FTGradients {
         )
     }
 
-    /// Fill of every raised surface (`elevatedSurface(in:)`): lighter at the
-    /// top as if lit from above in dark mode; flat in light mode, where both
-    /// stops are the surface color.
+    /// The old lit fill of raised surfaces. Both stops are now the surface
+    /// colour, so it draws flat; `elevatedSurface(in:)` fills with
+    /// `FTColors.surface` directly. Kept for API compatibility — prefer the
+    /// flat fill.
     public static var elevatedSurfaceBackground: LinearGradient {
         LinearGradient(
             colors: [FTColors.elevatedSurfaceTop, FTColors.elevatedSurfaceBottom],
@@ -38,13 +39,25 @@ public enum FTGradients {
     /// the filter chips. Clear at the bottom edge, 50% a quarter of the way
     /// up, 90% at 45%, solid from 60% to the top.
     public static var fadeTop: LinearGradient {
+        fadeTop(to: FTColors.background)
+    }
+
+    /// `fadeTop` for content inside a bottom sheet: the same stops, ending on
+    /// the sheet's body colour instead of the screen background, so it
+    /// doesn't show as a lighter band on the sheet. Used behind a sheet's
+    /// floating title (Plan Day).
+    public static var sheetFadeTop: LinearGradient {
+        fadeTop(to: FTColors.sheetSurface)
+    }
+
+    private static func fadeTop(to color: Color) -> LinearGradient {
         LinearGradient(
             stops: [
-                Gradient.Stop(color: FTColors.background.opacity(0), location: 0.00),
-                Gradient.Stop(color: FTColors.background.opacity(0.5), location: 0.25),
-                Gradient.Stop(color: FTColors.background.opacity(0.9), location: 0.45),
-                Gradient.Stop(color: FTColors.background, location: 0.60),
-                Gradient.Stop(color: FTColors.background, location: 1.00),
+                Gradient.Stop(color: color.opacity(0), location: 0.00),
+                Gradient.Stop(color: color.opacity(0.5), location: 0.25),
+                Gradient.Stop(color: color.opacity(0.9), location: 0.45),
+                Gradient.Stop(color: color, location: 0.60),
+                Gradient.Stop(color: color, location: 1.00),
             ],
             startPoint: UnitPoint(x: 0.5, y: 1),
             endPoint: UnitPoint(x: 0.5, y: 0),

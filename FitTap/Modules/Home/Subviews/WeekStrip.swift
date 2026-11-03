@@ -5,7 +5,15 @@ import SwiftUI
 /// The owner holds which week is showing and which day is selected; tapping
 /// the selected day again clears the selection. One green ring marks the
 /// selected day and slides across the week to the next tapped cell.
+///
+/// The strip runs the full screen width so cells slide all the way to the
+/// edges while paging; its own content margins put each resting week on the
+/// screen gutter. The owner pulls it out of its gutter by `edgeInset`.
 struct WeekStrip: View {
+    /// The screen gutter — the owner pads the strip by minus this, and the
+    /// strip insets its weeks by it.
+    static let edgeInset: CGFloat = 16
+
     let weeks: [WeekStripWeek]
     @Binding var currentWeek: WeekStripWeek.ID?
     @Binding var selectedDay: WeekStripDay.ID?
@@ -31,7 +39,9 @@ struct WeekStrip: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView(.horizontal) {
-                LazyHStack(spacing: 0) {
+                // A gap of one inset between weeks, so at rest the neighbours
+                // sit just off screen and nothing peeks in.
+                LazyHStack(spacing: Self.edgeInset) {
                     ForEach(weeks) { week in
                         HStack(spacing: 6) {
                             ForEach(week.days) { day in
@@ -61,7 +71,8 @@ struct WeekStrip: View {
                 }
                 .scrollTargetLayout()
             }
-            .scrollTargetBehavior(.paging)
+            .contentMargins(.horizontal, Self.edgeInset, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $scrolledWeek)
             .scrollIndicators(.hidden)
             PageDots(count: weeks.count, current: currentIndex)
@@ -112,7 +123,6 @@ private struct WeekStripPreviewHost: View {
 
     var body: some View {
         WeekStrip(weeks: WeekStripWeek.samples, currentWeek: $currentWeek, selectedDay: $selectedDay)
-            .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(FTColors.background)
     }

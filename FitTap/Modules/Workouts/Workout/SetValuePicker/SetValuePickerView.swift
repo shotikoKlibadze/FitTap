@@ -87,7 +87,7 @@ private struct SetValuePickerViewPreviewHost: View {
                     isCustom = false
                 },
             )
-            .background(FTColors.surface)
+            .background(FTColors.sheetSurface)
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
         .background(FTColors.background)

@@ -52,7 +52,7 @@ Most existing apps fail this user: too many fields, too many metrics, too much o
 - **Nutrition & diet** — food and diet plans folded into the same logging model.
 - **Apple Watch + Apple Health integration.**
 
-Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/FeaturePlanning.md) for the app and [AIFeaturePlanning.md](Planning/AIFeaturePlanning.md) for AI features, and [AgentSystemPlanning.md](Planning/AgentSystemPlanning.md) for the agent setup. Check them before building or proposing a feature; they are plans, not commitments, and this document still wins on scope.
+Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/FeaturePlanning.md) for the app and [AIFeaturePlanning.md](Planning/AIFeaturePlanning.md) for AI features, [AgentSystemPlanning.md](Planning/AgentSystemPlanning.md) for the agent setup, and [SwiftDataPlanning.md](Planning/SwiftDataPlanning.md) for persistence. Check them before building or proposing a feature; they are plans, not commitments, and this document still wins on scope.
 
 ### Explicitly not building
 
@@ -72,5 +72,6 @@ Detailed feature plans live in `Planning/` — [FeaturePlanning.md](Planning/Fea
 - **Rule-making is system-building.** "Add that to the rules" means put the rule where it belongs (a skill, this file, a hook, a script, memory), not automatically here. Any change to the agent setup goes through the `skill-authoring` skill: strongest mechanism first, reusable wording.
 - **Agent terminology.** **Subagents** are the agents defined in `.claude/agents/` and run inside Claude Code. **Custom agents** are standalone agent programs built with the Claude Agent SDK. Use these two terms exactly, in answers and in files.
 - **Watch for agent-system triggers.** When work hits a trigger in [AgentSystemPlanning.md](Planning/AgentSystemPlanning.md) — branches or tickets, a second developer or agent, Linear or GitHub, CI, a backend, API keys, a second project, unattended or repeated work a custom agent could do — recommend the matching item in one line, then continue. Don't build it unasked; update the file when an item is built or dropped.
+- **Plain-English guides for the owner.** When a system is designed or built (persistence, navigation, DI, an AI feature, sync), make or update its colourful plain-English guide in `Guides/` and publish it as an artifact: what lives where, why, and how it's wired. Agents write the code, so the owner relies on these to remember the structure. Conventions and the link index are in [Guides/README.md](Guides/README.md); keep the index current.
 - **The agent setup is itself a deliverable.** The overall goal behind this project is in [README.md](README.md) — FitTap doubles as a reusable agentic-workflow system, so process quality counts as much as the app. A deviation from a skill is a process defect: address it without excuses, find why it happened, and fix the skill or process so it cannot recur.
 

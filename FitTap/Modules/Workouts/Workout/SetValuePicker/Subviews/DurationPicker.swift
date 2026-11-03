@@ -88,7 +88,7 @@ private struct DurationPickerPreviewHost: View {
         .frame(height: SetValuePickerMetrics.contentHeight, alignment: .top)
         .padding(.horizontal, SetValuePickerMetrics.horizontalPadding)
         .frame(maxHeight: .infinity)
-        .background(FTColors.surface)
+        .background(FTColors.sheetSurface)
     }
 }
 

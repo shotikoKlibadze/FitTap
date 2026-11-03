@@ -10,6 +10,9 @@ struct WorkoutExercise: Identifiable, Hashable, Codable, Sendable {
     var order: Int
     var sets: [SetEntry]
     var cardio: CardioEntry?
+    /// How it felt, rated after its last set is done; `nil` until rated (or
+    /// if the user skips it). Only meaningful in a logged session.
+    var effort: Effort?
 
     init(
         id: UUID = UUID(),
@@ -17,11 +20,19 @@ struct WorkoutExercise: Identifiable, Hashable, Codable, Sendable {
         order: Int,
         sets: [SetEntry] = [],
         cardio: CardioEntry? = nil,
+        effort: Effort? = nil,
     ) {
         self.id = id
         self.exerciseID = exerciseID
         self.order = order
         self.sets = sets
         self.cardio = cardio
+        self.effort = effort
+    }
+
+    /// Every set is checked off, so the exercise is finished and can be
+    /// rated. An exercise without sets (cardio) never counts as done here.
+    var allSetsLogged: Bool {
+        !sets.isEmpty && sets.allSatisfy { $0.loggedAt != nil }
     }
 }

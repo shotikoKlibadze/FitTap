@@ -39,17 +39,7 @@ Home/
 - A helper used by several features isn't a screen helper: it moves to `Core/` (logic and models) or the design system (UI).
 - The screen's own files — Screen, ScreenModel, View, Destination, Checkpoints — stay at the feature folder's root.
 
-- **16 pt horizontal gutter on every screen — a hard rule.** A scrolling screen is a `ScrollView` with `.contentMargins(.horizontal, 8, for: .scrollContent)`: the scroll view already contributes 8, so 8 + 8 = the 16 pt gutter. Never pad the scroll content horizontally on top of that, and never use a different margin value. A non-scrolling screen gets `.padding(.horizontal, 16)` on its root content. Bottom-pinned controls in `.safeAreaInset` use `.padding(.horizontal, 16)` to line up with the content.
-- **Scroll indicators are hidden on every scroll view** — `.scrollIndicators(.hidden)` (or `showsIndicators: false` on a horizontal one). Calm screens: no bar flashing in while scrolling.
-- **Exception: a list inside a fixed-size box** (a dropdown, an open picker) where the options are cut off and nothing else hints there's more. It uses `.scrollIndicators(.visible)` plus `.scrollIndicatorsFlash(onAppear: true)`, so the bar flashes once when it opens.
-
-```swift
-ScrollView {
-    VStack(spacing: 16) { … }           // no horizontal padding here
-}
-.contentMargins(.horizontal, 8, for: .scrollContent)   // 8 + system 8 = 16
-.scrollIndicators(.hidden)
-```
+- **Layout** — gutter, background, titles and section headers, horizontal rows, sheets, scroll indicators — lives in the `screen-layout` skill.
 
 - **View files stay under 300–400 lines.** When a view grows past that, refactor — extract pieces into `Subviews/` as separate dumb `struct`s. Subviews follow all the View rules below and each gets its own `#Preview` (see the `previews` skill).
 - A subview used by more than one feature graduates to the design system (see the `design-system` skill) — it doesn't stay in a feature's `Subviews/`.
@@ -99,4 +89,3 @@ The View is dumb — a pure function of its inputs:
 4. Sheets and covers are destination cases (`.managedSheet` / `.managedCover`) — never raw `.sheet` / `.fullScreenCover` bindings.
 5. ScreenModel is `@MainActor @Observable final class` and never touches view code or the navigator.
 6. `.appToolbar` sits on the Screen, always with a title and a back button unless told otherwise; Views never draw headers or toolbars.
-7. Every screen keeps a 16 pt horizontal gutter: `ScrollView` + `.contentMargins(.horizontal, 8, for: .scrollContent)` (8 + the scroll view's own 8), or `.padding(.horizontal, 16)` when nothing scrolls. No extra horizontal padding on scroll content. Scroll indicators always hidden.

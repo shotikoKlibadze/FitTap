@@ -1,11 +1,11 @@
 import SwiftUI
 
 public extension View {
-    /// Draws the view on a raised surface in `shape`: the elevated-surface
-    /// gradient fill, a top highlight and a hairline edge inside the shape,
-    /// and a drop shadow. Every value is an adaptive token, so one call gives
-    /// dark mode its lit gradient and edges, and light mode a flat surface
-    /// with a soft shadow.
+    /// Draws the view on a raised surface in `shape`: a flat `surface` fill,
+    /// a 0.5 pt hairline inside the shape, and one drop shadow. Dark and
+    /// light use the same recipe; only the token values differ. On the dark
+    /// gray background a single black shadow is enough to lift a card, so
+    /// there is no gradient and no lit top edge.
     ///
     /// For surfaces that sit on the screen background — cards, fields, the
     /// type switcher. Never for controls inside them (pills, ✕, + Add Set).
@@ -33,7 +33,7 @@ private struct ElevatedSurface<S: InsettableShape>: ViewModifier {
                 // The shadow belongs to the fill alone, so text and icons on
                 // the surface don't cast their own.
                 shape
-                    .fill(FTGradients.elevatedSurfaceBackground)
+                    .fill(FTColors.surface)
                     .shadow(
                         color: FTColors.elevatedSurfaceShadow,
                         radius: elevation.shadowRadius,
@@ -47,16 +47,6 @@ private struct ElevatedSurface<S: InsettableShape>: ViewModifier {
                 } else {
                     shape.strokeBorder(FTColors.elevatedSurfaceHairline, lineWidth: 0.5)
                 }
-            }
-            .overlay {
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [FTColors.elevatedSurfaceHighlight, .clear],
-                        startPoint: .top,
-                        endPoint: .center,
-                    ),
-                    lineWidth: 1,
-                )
             }
     }
 }

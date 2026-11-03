@@ -8,10 +8,19 @@ struct AppToolbarModifier: ViewModifier {
     let leading: AppToolbarButton?
     let trailing: AppToolbarButton?
 
+    /// A dimmed overlay inside is up (`hidesEdgeFades`): the fade steps aside
+    /// so it doesn't sit undimmed on top of the dim as a band.
+    @State private var fadeHidden = false
+
     func body(content: Content) -> some View {
         content
             // Every toolbar screen starts its content 8pt below the bar.
             .safeAreaPadding(.top, 8)
+            .onPreferenceChange(EdgeFadesHiddenKey.self) { hidden in
+                MainActor.assumeIsolated {
+                    withAnimation(.smooth(duration: 0.3)) { fadeHidden = hidden }
+                }
+            }
             // Fade behind the status bar + bar row: content dissolves as it
             // scrolls under. Sized to the top safe area (read from the content
             // view, which starts at the bar's bottom) and lifted above it, so
@@ -22,6 +31,7 @@ struct AppToolbarModifier: ViewModifier {
                         .frame(height: proxy.safeAreaInsets.top)
                         .offset(y: -proxy.safeAreaInsets.top)
                 }
+                .opacity(fadeHidden ? 0 : 1)
                 .allowsHitTesting(false)
             }
             .navigationBarBackButtonHidden()

@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The app's only alert: a Liquid Glass card with a title, a message, and a
-/// column of flat pill buttons — a colored confirm over a quiet cancel, or
+/// The app's only alert: a card with a title, a message, and a column of flat
+/// pill buttons — a colored confirm over a quiet cancel, or
 /// several equal choices. Never placed directly — present it with
 /// `.appAlert(isPresented:…)`, which centers it over a dimmed app the way the
 /// system alert sits.
@@ -32,7 +32,13 @@ struct AppAlert: View {
         }
         .padding(20)
         .frame(width: 300)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+        // The same opaque body as a bottom sheet, so every overlay reads as
+        // one family: the darkest thing on screen in dark mode, over the
+        // lightening scrim.
+        .background(
+            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                .fill(FTColors.sheetSurface),
+        )
     }
 }
 
