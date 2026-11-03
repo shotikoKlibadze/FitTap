@@ -26,7 +26,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 ProfileHeader(image: nil, title: profileTitle, subtitle: profileSubtitle)
                     .padding(.bottom, 22)
-                SectionTitle(title: weekTitle)
+                SectionHeader(title: weekTitle)
                     .contentTransition(.opacity)
                     .padding(.bottom, 12)
                 WeekStrip(
@@ -61,7 +61,7 @@ struct HomeView: View {
 
     private var daySection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(title: dayTitle ?? "")
+            SectionHeader(title: dayTitle ?? "")
                 .contentTransition(.opacity)
                 .padding(.bottom, 8)
             // Keyed by what the card shows, not by the day: moving between
@@ -98,7 +98,7 @@ struct HomeView: View {
 
     private var weekList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(title: weekListTitle)
+            SectionHeader(title: weekListTitle)
                 .padding(.bottom, 8)
             VStack(spacing: 9) {
                 ForEach(weekItems) { item in
@@ -113,7 +113,7 @@ struct HomeView: View {
         if let dayItem {
             sessionCard(dayItem)
         } else if let dayAddTitle {
-            CardAddButton(title: dayAddTitle, action: onTapPlanWorkout)
+            AddButton(title: dayAddTitle, action: onTapPlanWorkout)
         }
     }
 
@@ -164,13 +164,13 @@ private struct HomeViewPreviewHost: View {
         )
     }
 }
-#Preview("Light") {
-    HomeViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     HomeViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    HomeViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

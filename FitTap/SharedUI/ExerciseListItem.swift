@@ -126,13 +126,13 @@ private struct ExerciseListItemPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    ExerciseListItemPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ExerciseListItemPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ExerciseListItemPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

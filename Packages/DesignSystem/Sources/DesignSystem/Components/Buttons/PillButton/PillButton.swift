@@ -63,13 +63,13 @@ private struct PillButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    PillButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     PillButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    PillButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

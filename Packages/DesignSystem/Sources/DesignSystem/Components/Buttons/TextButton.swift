@@ -48,13 +48,13 @@ private struct TextButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    TextButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     TextButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    TextButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

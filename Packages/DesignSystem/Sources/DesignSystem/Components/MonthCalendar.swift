@@ -177,13 +177,13 @@ private struct MonthCalendarPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    MonthCalendarPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     MonthCalendarPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    MonthCalendarPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

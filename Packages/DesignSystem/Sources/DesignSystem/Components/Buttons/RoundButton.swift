@@ -140,13 +140,13 @@ private struct RoundButtonPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    RoundButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     RoundButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    RoundButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -325,13 +325,13 @@ private struct FTColorsPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    FTColorsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     FTColorsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    FTColorsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

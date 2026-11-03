@@ -71,13 +71,13 @@ private struct ProfileHeaderPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    ProfileHeaderPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ProfileHeaderPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ProfileHeaderPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

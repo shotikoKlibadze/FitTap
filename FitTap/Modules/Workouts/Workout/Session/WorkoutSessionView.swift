@@ -227,13 +227,13 @@ private struct WorkoutSessionViewPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WorkoutSessionViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutSessionViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutSessionViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

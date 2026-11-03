@@ -235,13 +235,13 @@ private struct NumberEntryPanelPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    NumberEntryPanelPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     NumberEntryPanelPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    NumberEntryPanelPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

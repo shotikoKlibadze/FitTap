@@ -49,13 +49,13 @@ private struct WorkoutTitleRowPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WorkoutTitleRowPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutTitleRowPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutTitleRowPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -131,13 +131,13 @@ private struct AddExerciseViewPreviewHost: View {
         }
     }
 }
-#Preview("Light") {
-    AddExerciseViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     AddExerciseViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    AddExerciseViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

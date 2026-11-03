@@ -115,13 +115,13 @@ private struct GlassExpanderPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    GlassExpanderPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     GlassExpanderPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    GlassExpanderPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

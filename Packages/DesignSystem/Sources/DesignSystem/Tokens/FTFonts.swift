@@ -90,13 +90,13 @@ private struct FTFontsPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    FTFontsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     FTFontsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    FTFontsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -39,13 +39,13 @@ private struct PressButtonStylePreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    PressButtonStylePreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     PressButtonStylePreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    PressButtonStylePreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

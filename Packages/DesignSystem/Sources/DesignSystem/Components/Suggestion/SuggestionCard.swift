@@ -71,13 +71,13 @@ private struct SuggestionCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SuggestionCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     SuggestionCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    SuggestionCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

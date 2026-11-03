@@ -74,13 +74,13 @@ private struct GlassPillButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    GlassPillButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     GlassPillButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    GlassPillButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

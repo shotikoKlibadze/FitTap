@@ -39,13 +39,13 @@ private struct WorkoutNameFieldPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    WorkoutNameFieldPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutNameFieldPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutNameFieldPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

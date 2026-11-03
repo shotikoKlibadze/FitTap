@@ -106,13 +106,13 @@ private struct RippleEffectPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    RippleEffectPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     RippleEffectPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    RippleEffectPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -17,14 +17,14 @@ private struct WeightStepperPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WeightStepperPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WeightStepperPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WeightStepperPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif
 ```

@@ -85,9 +85,9 @@ final class WorkoutScreenModel {
 
     /// Strength: exercises, sets, rough minutes. Cardio: exercises, minutes,
     /// and the distance target when there is one.
-    var stats: [StatsStrip.Stat] {
+    var stats: [WorkoutSummaryStrip.Stat] {
         let workout = workout
-        let exerciseStat = StatsStrip.Stat(
+        let exerciseStat = WorkoutSummaryStrip.Stat(
             value: "\(workout.exercises.count)",
             label: workout.exercises.count == 1 ? "exercise" : "exercises",
         )
@@ -95,14 +95,14 @@ final class WorkoutScreenModel {
         case .strength:
             return [
                 exerciseStat,
-                StatsStrip.Stat(value: "\(workout.setCount)", label: "sets"),
-                StatsStrip.Stat(value: "~\(workout.estimatedMinutes)", label: "minutes"),
+                WorkoutSummaryStrip.Stat(value: "\(workout.setCount)", label: "sets"),
+                WorkoutSummaryStrip.Stat(value: "~\(workout.estimatedMinutes)", label: "minutes"),
             ]
         case .cardio:
-            var stats = [exerciseStat, StatsStrip.Stat(value: "\(workout.estimatedMinutes)", label: "minutes")]
+            var stats = [exerciseStat, WorkoutSummaryStrip.Stat(value: "\(workout.estimatedMinutes)", label: "minutes")]
             if let meters = workout.plannedDistanceMeters {
                 let km = (meters / 1000).formatted(.number.precision(.fractionLength(0...1)))
-                stats.append(StatsStrip.Stat(value: km, label: "km target"))
+                stats.append(WorkoutSummaryStrip.Stat(value: km, label: "km target"))
             }
             return stats
         }

@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// A section's title on a screen — "Progression", "Ongoing Week" — bold in
-/// the text colour, with "See All" at the trailing edge when the section
-/// opens into more. The quieter `SectionHeader` is for form labels; this is
-/// the row that heads a block of content.
-public struct SectionTitle: View {
+/// The one header for every section on every screen — "Progression",
+/// "Ongoing Week", "Type", "8 Exercises" — bold in the text colour, with
+/// "See All" at the trailing edge when the section opens into more.
+public struct SectionHeader: View {
     let title: String
     let seeAllAction: (() -> Void)?
 
@@ -28,13 +27,14 @@ public struct SectionTitle: View {
 }
 
 #if DEBUG
-private struct SectionTitlePreviewHost: View {
+private struct SectionHeaderPreviewHost: View {
     @State private var taps = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SectionTitle(title: "Ongoing Week")
-            SectionTitle(title: "Progression") { taps += 1 }
+            SectionHeader(title: "Ongoing Week")
+            SectionHeader(title: "Progression") { taps += 1 }
+            SectionHeader(title: "Muscle Groups")
             Text("\(taps) See All taps")
                 .font(FTFonts.footnote)
                 .foregroundStyle(FTColors.textSecondary)
@@ -45,13 +45,13 @@ private struct SectionTitlePreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SectionTitlePreviewHost()
-        .preferredColorScheme(.light)
+#Preview("Dark") {
+    SectionHeaderPreviewHost()
+        .preferredColorScheme(.dark)
 }
 
-#Preview("Dark") {
-    SectionTitlePreviewHost()
-        .preferredColorScheme(.dark)
+#Preview("Light") {
+    SectionHeaderPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

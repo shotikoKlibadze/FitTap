@@ -58,13 +58,13 @@ private struct PlanWorkoutCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    PlanWorkoutCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     PlanWorkoutCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    PlanWorkoutCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

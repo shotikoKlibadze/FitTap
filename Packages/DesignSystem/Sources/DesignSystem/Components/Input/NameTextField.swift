@@ -62,13 +62,13 @@ private struct AppTextFieldPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    AppTextFieldPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     AppTextFieldPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    AppTextFieldPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

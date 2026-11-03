@@ -2,7 +2,7 @@ import DesignSystem
 import SwiftUI
 
 /// The Stats tab: the title, then sections stacked in one scroll, each a
-/// `SectionTitle` and a card. Suggestions, Calendar, Progression, Cardio and
+/// `SectionHeader` and a card. Suggestions, Calendar, Progression, Cardio and
 /// Balance. The calendar's months sit in a horizontal scroll, oldest first.
 struct StatsView: View {
     let suggestion: StatsSuggestionItem?
@@ -92,7 +92,7 @@ struct StatsView: View {
     /// Titles line up with the cards on the 16 pt gutter. Sections after the
     /// first get a little air above their title.
     private func sectionTitle(_ title: String, isFirst: Bool = false, seeAllAction: (() -> Void)? = nil) -> some View {
-        SectionTitle(title: title, seeAllAction: seeAllAction)
+        SectionHeader(title: title, seeAllAction: seeAllAction)
             .frame(minHeight: 30)
             .padding(.top, isFirst ? 0 : 8)
     }
@@ -117,13 +117,13 @@ private struct StatsViewPreviewHost: View {
         )
     }
 }
-#Preview("Light") {
-    StatsViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     StatsViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    StatsViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

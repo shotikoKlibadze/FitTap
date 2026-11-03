@@ -159,13 +159,13 @@ private struct AppToolbarPreviewHost: View {
         }
     }
 }
-#Preview("Light") {
-    AppToolbarPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     AppToolbarPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    AppToolbarPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

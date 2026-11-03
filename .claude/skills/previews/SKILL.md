@@ -29,9 +29,9 @@ struct WeightStepper: View { … }
 
 A `#Preview` outside `#if DEBUG` is a defect, even in a file with a single preview. *Enforced by the `check-previews-in-debug.sh` hook.*
 
-## Exactly two previews: Light and Dark
+## Exactly two previews: Dark, then Light
 
-Every file with previews has **exactly two**, named `"Light"` and `"Dark"` — never per-state variants ("Empty", "Loading", "Filled"). Both render one **full, interactive** version of the view through a private host that owns the state, so every tap, toggle and selection works live in either mode. → [reference.md §1](reference.md#1-the-light--dark-preview-host)
+Every file with previews has **exactly two**, named `"Dark"` and `"Light"`, **Dark first** — never per-state variants ("Empty", "Loading", "Filled"). Both render one **full, interactive** version of the view through a private host that owns the state, so every tap, toggle and selection works live in either mode. → [reference.md §1](reference.md#1-the-light--dark-preview-host)
 
 - The host is the one place state lives: `@State` for bindings (never `.constant`), plus small demo state where it makes the preview visibly interactive (a tap counter, a disable toggle). Want another state visible? Make it reachable by interacting with the one full preview, not by adding a variant.
 - Callbacks a preview can't meaningfully perform are empty closures; a preview never does real work.
@@ -54,7 +54,7 @@ A design-system component's preview is a **gallery of all its states and variant
 ## Rules recap
 
 1. Every view, subview, component and token showcase has previews; screens don't need one.
-2. Exactly two previews per file — `"Light"` and `"Dark"` — never per-state variants.
+2. Exactly two previews per file — `"Dark"` first, then `"Light"` — never per-state variants.
 3. Both render one full, interactive version through a private `…PreviewHost` that owns the `@State`; never `.constant`.
 4. Fixtures are `static` extensions on the model, `#if DEBUG`-wrapped, reused across previews.
 5. A hard-to-write preview means the view isn't dumb — fix the view.

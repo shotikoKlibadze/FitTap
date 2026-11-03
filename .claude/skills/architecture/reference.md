@@ -87,7 +87,7 @@ private struct SomeViewPreviewHost: View {
     }
 }
 
-#Preview("Light") { SomeViewPreviewHost().preferredColorScheme(.light) }
 #Preview("Dark") { SomeViewPreviewHost().preferredColorScheme(.dark) }
+#Preview("Light") { SomeViewPreviewHost().preferredColorScheme(.light) }
 #endif
 ```

@@ -69,13 +69,13 @@ private struct ValueGridPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    ValueGridPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ValueGridPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ValueGridPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

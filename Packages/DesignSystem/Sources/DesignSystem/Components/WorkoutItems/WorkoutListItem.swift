@@ -118,13 +118,13 @@ private struct WorkoutListItemPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WorkoutListItemPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutListItemPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutListItemPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

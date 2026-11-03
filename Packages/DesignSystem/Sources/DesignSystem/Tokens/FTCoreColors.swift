@@ -38,13 +38,13 @@ private struct FTCoreColorsPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    FTCoreColorsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     FTCoreColorsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    FTCoreColorsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

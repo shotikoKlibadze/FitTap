@@ -55,13 +55,13 @@ private struct CardioSummaryCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    CardioSummaryCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     CardioSummaryCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    CardioSummaryCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

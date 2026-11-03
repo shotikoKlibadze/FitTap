@@ -62,13 +62,13 @@ private struct FTIconsPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    FTIconsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     FTIconsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    FTIconsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

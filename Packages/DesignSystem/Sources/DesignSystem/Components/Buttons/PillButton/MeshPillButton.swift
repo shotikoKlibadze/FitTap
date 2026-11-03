@@ -126,13 +126,13 @@ private struct MeshPillButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    MeshPillButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     MeshPillButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    MeshPillButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

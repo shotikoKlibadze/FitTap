@@ -2,7 +2,7 @@ import DesignSystem
 import SwiftUI
 
 /// The balance card on the Stats tab: "Sets in the last 4 weeks" over a
-/// four-column grid of `SetCountButton` tiles, one per muscle group. Tapping
+/// four-column grid of `CountTileButton` tiles, one per muscle group. Tapping
 /// a tile reports its id.
 struct StatsBalanceCard: View {
     let items: [StatsBalanceItem]
@@ -17,7 +17,7 @@ struct StatsBalanceCard: View {
                 .foregroundStyle(FTColors.textSecondary)
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(items) { item in
-                    SetCountButton(title: item.title, count: item.count, status: item.status) {
+                    CountTileButton(title: item.title, count: item.count, status: item.status) {
                         onTap(item.id)
                     }
                 }
@@ -45,13 +45,13 @@ private struct StatsBalanceCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    StatsBalanceCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     StatsBalanceCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    StatsBalanceCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -143,13 +143,13 @@ private struct RatingStripPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    RatingStripPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     RatingStripPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    RatingStripPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

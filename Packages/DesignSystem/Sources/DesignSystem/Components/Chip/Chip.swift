@@ -46,13 +46,13 @@ private struct ChipPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    ChipPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ChipPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ChipPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

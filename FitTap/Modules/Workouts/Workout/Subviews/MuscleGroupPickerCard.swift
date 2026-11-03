@@ -151,13 +151,13 @@ private struct MuscleGroupPickerCardPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    MuscleGroupPickerCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     MuscleGroupPickerCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    MuscleGroupPickerCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

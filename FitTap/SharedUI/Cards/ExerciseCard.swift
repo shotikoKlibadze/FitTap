@@ -139,7 +139,7 @@ struct ExerciseCard: View {
                 removeButton { removeSet(set.id) }
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             case .session:
-                CheckmarkButton(status: checkStatus(set)) { setStatus(set.id, $0) }
+                CompletionButton(status: checkStatus(set)) { setStatus(set.id, $0) }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.cardSpace)) } action: {
                         checkFrames[set.id] = $0
                     }
@@ -272,7 +272,7 @@ struct ExerciseCard: View {
     // MARK: - Working out
 
     /// Failed beats done: a failed set is logged too, with the flag on top.
-    private func checkStatus(_ set: SetEntry) -> CheckmarkButton.Status {
+    private func checkStatus(_ set: SetEntry) -> CompletionButton.Status {
         guard set.loggedAt != nil else { return .open }
         return set.failed ? .failed : .done
     }
@@ -280,7 +280,7 @@ struct ExerciseCard: View {
     /// Writes the check's pick onto the set. Completing it sends a ripple
     /// out from its check; failing it or taking a log back stays quiet. A
     /// set already logged keeps its time when only the flag changes.
-    private func setStatus(_ id: UUID, _ status: CheckmarkButton.Status) {
+    private func setStatus(_ id: UUID, _ status: CompletionButton.Status) {
         guard let index = workoutExercise.sets.firstIndex(where: { $0.id == id }) else { return }
         let wasDone = checkStatus(workoutExercise.sets[index]) == .done
         withAnimation(.smooth(duration: 0.2)) {
@@ -373,13 +373,13 @@ private struct ExerciseCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    ExerciseCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ExerciseCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ExerciseCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

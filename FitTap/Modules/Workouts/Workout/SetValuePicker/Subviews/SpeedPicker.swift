@@ -33,13 +33,13 @@ private struct SpeedPickerPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SpeedPickerPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     SpeedPickerPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    SpeedPickerPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

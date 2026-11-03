@@ -233,13 +233,13 @@ private struct ChipPickerPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    ChipPickerPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ChipPickerPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ChipPickerPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

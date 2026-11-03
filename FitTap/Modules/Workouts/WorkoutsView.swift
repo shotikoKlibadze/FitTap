@@ -14,7 +14,7 @@ struct WorkoutsView: View {
                     .foregroundStyle(FTColors.textPrimary)
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    CardAddButton(title: "New workout", action: onTapNewWorkout)
+                    AddButton(title: "New workout", action: onTapNewWorkout)
                         .aspectRatio(1, contentMode: .fit)
                     ForEach(workouts) { workout in
                         WorkoutCard(
@@ -45,13 +45,13 @@ private struct WorkoutsViewPreviewHost: View {
         }
     }
 }
-#Preview("Light") {
-    WorkoutsViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutsViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutsViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

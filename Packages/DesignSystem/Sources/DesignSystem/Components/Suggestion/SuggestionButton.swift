@@ -42,13 +42,13 @@ private struct SuggestionButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SuggestionButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     SuggestionButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    SuggestionButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

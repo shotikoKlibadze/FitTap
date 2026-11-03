@@ -20,13 +20,13 @@ private struct LogWorkoutViewPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    LogWorkoutViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     LogWorkoutViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    LogWorkoutViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

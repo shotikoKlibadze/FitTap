@@ -3,7 +3,7 @@ import SwiftUI
 /// Dashed "add something" card: plus circle, title, optional subtitle.
 /// It sizes to its content and fills whatever the layout hands it — square
 /// it in a grid with `.aspectRatio(1, contentMode: .fit)` at the call site.
-public struct CardAddButton: View {
+public struct AddButton: View {
     public enum Layout {
         /// Plus over the title, centered — grid tiles and empty-state cards.
         case stacked
@@ -85,7 +85,7 @@ public struct CardAddButton: View {
 }
 
 #if DEBUG
-private struct CardAddButtonPreviewHost: View {
+private struct AddButtonPreviewHost: View {
     @State private var tapCount = 0
 
     var body: some View {
@@ -95,28 +95,28 @@ private struct CardAddButtonPreviewHost: View {
                     .font(FTFonts.body)
                     .foregroundStyle(FTColors.textSecondary)
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                    CardAddButton(title: "New workout") { tapCount += 1 }
+                    AddButton(title: "New workout") { tapCount += 1 }
                         .aspectRatio(1, contentMode: .fit)
                 }
-                CardAddButton(title: "Plan workout for today") { tapCount += 1 }
-                CardAddButton(
+                AddButton(title: "Plan workout for today") { tapCount += 1 }
+                AddButton(
                     title: "Add Exercise",
                     subtitle: "Add your first exercise to start building the workout.",
                 ) { tapCount += 1 }
-                CardAddButton(title: "New workout", layout: .inline) { tapCount += 1 }
+                AddButton(title: "New workout", layout: .inline) { tapCount += 1 }
             }
             .padding()
         }
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    CardAddButtonPreviewHost()
-        .preferredColorScheme(.light)
+#Preview("Dark") {
+    AddButtonPreviewHost()
+        .preferredColorScheme(.dark)
 }
 
-#Preview("Dark") {
-    CardAddButtonPreviewHost()
-        .preferredColorScheme(.dark)
+#Preview("Light") {
+    AddButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

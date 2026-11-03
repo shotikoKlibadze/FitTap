@@ -90,13 +90,13 @@ private struct RepsPickerPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    RepsPickerPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     RepsPickerPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    RepsPickerPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

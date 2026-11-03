@@ -47,13 +47,13 @@ private struct StatsProgressionCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    StatsProgressionCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     StatsProgressionCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    StatsProgressionCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

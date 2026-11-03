@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: Use when writing ANY view code — screens, subviews, or reusable components — the design system (the local DesignSystem package: FTColors, FTFonts, its components) is mandatory everywhere; also defines where components live (package vs. the app's SharedUI), how they're named (no FT prefix), and its Light/Dark gallery preview.
+description: Use when writing ANY view code — screens, subviews, or reusable components — the design system (the local DesignSystem package: FTColors, FTFonts, its components) is mandatory everywhere; also defines where components live (package vs. the app's SharedUI), how they're named (no FT prefix), and its Dark/Light gallery preview.
 paths:
   - "FitTap/**/*.swift"
   - "Packages/**/*.swift"
@@ -61,7 +61,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 ## Hard rules — buttons
 
-- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `CardAddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
+- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `AddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
 - **Pill buttons: pick the surface, then the meaning.** `GlassPillButton` for a screen's own actions pinned over its content (Start Workout, Save, Add); the flat `PillButton` inside sheets, alerts and cards — glass there would sit on glass. Both take the same `PillStyle`: `.primary` (green), `.secondary` (faint surface), `.destructive` (red), `.add` (faint surface, yellow text — "+ Add Set"), and the same `PillButtonSize`.
 - **A missing look goes inside the component — after the user's OK.** A new meaning → a case on `PillStyle` (both pills get it); a size → `PillButtonSize`; another button's variant → its own enum. Never a restyled copy or a one-off styled `Button` in place. Adding the case is a component change: ask first (see components above).
 - **The one exception: `AppToolbar`'s bar items.** They're plain glyphs on the system's shared glass, drawn inside `AppToolbar` — our own button chrome there breaks the push/pop morph.
@@ -95,9 +95,9 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 - Tokens only, per the rules above.
 - Shape of a component: [reference.md §2](reference.md#2-component-shape--variants-as-enums-states-from-inputs).
 
-## The gallery preview — Light and Dark
+## The gallery preview — Dark and Light
 
-A component's previews follow the `previews` skill: **exactly two, `"Light"` and `"Dark"`**, both rendering one private `…PreviewHost`. For a component, that one host *is* the gallery — every variant laid out together, and interactive so states are reached by tapping rather than by extra previews. → [reference.md §3](reference.md#3-the-light--dark-gallery-host)
+A component's previews follow the `previews` skill: **exactly two, `"Dark"` then `"Light"`**, both rendering one private `…PreviewHost`. For a component, that one host *is* the gallery — every variant laid out together, and interactive so states are reached by tapping rather than by extra previews. → [reference.md §3](reference.md#3-the-light--dark-gallery-host)
 
 - The host covers every variant and lets you reach every state (enabled/disabled, selected, loading) by interacting; include extreme content (longest realistic label) when the component holds text.
 - Changing a component means updating its host in the same change — a variant that isn't in the host doesn't exist.
@@ -109,7 +109,7 @@ A component's previews follow the `previews` skill: **exactly two, `"Light"` and
 3. Check Components/ first; never build a detached duplicate of an existing component. Changing an existing one — a new case included — needs the user's OK for that change: say why on a `Component change:` line, then wait.
 4. Reusable UI lives in the `DesignSystem` package (`SharedUI/` when it needs app models), plainly named (no `FT`; `App` only on SwiftUI collisions), one per file; one-screen views stay in feature `Subviews/`.
 5. Variants are enums; states derive from inputs; one component renders all its states.
-6. Every token set and component has exactly two previews, `"Light"` and `"Dark"`, rendering one interactive gallery host kept current with every change (see the `previews` skill).
+6. Every token set and component has exactly two previews, `"Dark"` then `"Light"`, rendering one interactive gallery host kept current with every change (see the `previews` skill).
 7. Components are dumb: properties, bindings, callbacks — nothing else.
 8. Every tappable element declares a `.contentShape(...)` matching its visible shape — taps land anywhere on it, never only on the text.
 9. Every alert is `.appAlert(...)` — centered over a dimmed app; never `.alert`, `.confirmationDialog`, or a custom overlay.

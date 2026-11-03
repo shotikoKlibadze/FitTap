@@ -22,8 +22,7 @@ The rules below use these. Another project swaps the table, not the rules.
 | Sheet background | `FTColors.sheetSurface`, painted by `BottomSheet` |
 | Screen title | `FTFonts.largeTitleBold`, `textPrimary` |
 | Sheet title | `FTFonts.title3Semibold`, `textPrimary` |
-| Section header | the `SectionTitle` component (`subheadlineBold`, `textPrimary`, optional "See All") |
-| Form label | the `SectionHeader` component |
+| Section header | the `SectionHeader` component (`subheadlineBold`, `textPrimary`, optional "See All") |
 | Shadow room in a scroll clip | 12 pt (fits the `.regular` elevation: radius 9, 3 pt down) |
 | Bottom scroll margin | 32 pt |
 
@@ -60,7 +59,7 @@ ScrollView {
 ## Titles and headers
 
 - **A tab's root screen draws its title in content**: the screen title role, first in the scroll, then the sections. Pushed screens take their title from `.appToolbar(title:)` on the Screen instead (see the `architecture` skill).
-- **A section header is always `SectionTitle`**, sitting on the gutter like the cards, with "See All" only when the section has somewhere to go. `SectionHeader` is for form labels ("Type", "Muscle Groups"), never for sections.
+- **Every section header is `SectionHeader`** — content sections and form labels alike ("Progression", "Type", "8 Exercises"), one look everywhere. It sits on the gutter like the cards, with "See All" only when the section has somewhere to go.
 - **A sheet's title** uses the sheet title role, at the top of the sheet content.
 
 ## Non-scrolling screens
@@ -86,6 +85,6 @@ ScrollView {
 1. Every screen's View paints its own background in production code; sheet Views paint nothing (the sheet does); nothing shows the system's.
 2. 16 pt gutter everywhere: `.contentMargins(.horizontal, 16, …)` on scrolling screens and sheets, `.padding(.horizontal, 16)` on non-scrolling roots and pinned controls. No other value, no padding on top.
 3. Horizontal rows run edge to edge (−16 out, 16 content margins back), page with `.viewAligned` and a 16 pt gap, and leave 12 pt shadow room for elevated cards.
-4. Tab roots draw a large title in content; pushed screens title through `.appToolbar`; sheets use the sheet title; sections use `SectionTitle`.
+4. Tab roots draw a large title in content; pushed screens title through `.appToolbar`; sheets use the sheet title; every section uses `SectionHeader`.
 5. Sheets: fixed height from Metrics, title over the sheet fade when content scrolls under it, flat buttons.
 6. Scroll indicators hidden, except in a fixed-size box with cut-off options.

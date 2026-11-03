@@ -34,7 +34,7 @@ struct WorkoutView: View {
     @Binding var exercises: [WorkoutExercise]
     let catalog: [UUID: Exercise]
     let subtitle: String
-    let stats: [StatsStrip.Stat]
+    let stats: [WorkoutSummaryStrip.Stat]
     let lastDoneText: String?
     let saveTitle: String
     let canSave: Bool
@@ -219,7 +219,7 @@ struct WorkoutView: View {
                     .matchedGeometryEffect(id: MorphID.typeBar, in: morph)
                     .transition(.opacity)
                 } else {
-                    StatsStrip(stats: stats)
+                    WorkoutSummaryStrip(stats: stats)
                         .matchedGeometryEffect(id: MorphID.typeBar, in: morph)
                         .transition(.opacity)
                 }
@@ -231,7 +231,7 @@ struct WorkoutView: View {
     private var exercisesSection: some View {
         if exercises.isEmpty {
             if isEditing {
-                CardAddButton(
+                AddButton(
                     title: "Add Exercise",
                     subtitle: "Add your first exercise to start building the workout.",
                     action: onTapAddExercise,
@@ -258,7 +258,7 @@ struct WorkoutView: View {
                         }
                     }
                     if isEditing {
-                        CardAddButton(title: "Add Exercise", action: onTapAddExercise)
+                        AddButton(title: "Add Exercise", action: onTapAddExercise)
                             .transition(.opacity)
                     }
                 }
@@ -311,9 +311,9 @@ private struct WorkoutViewPreviewHost: View {
                 catalog: catalog,
                 subtitle: "Strength · Chest, Shoulders",
                 stats: [
-                    StatsStrip.Stat(value: "\(exercises.count)", label: "exercises"),
-                    StatsStrip.Stat(value: "18", label: "sets"),
-                    StatsStrip.Stat(value: "~55", label: "minutes"),
+                    WorkoutSummaryStrip.Stat(value: "\(exercises.count)", label: "exercises"),
+                    WorkoutSummaryStrip.Stat(value: "18", label: "sets"),
+                    WorkoutSummaryStrip.Stat(value: "~55", label: "minutes"),
                 ],
                 lastDoneText: "Last done Monday, Oct 26",
                 saveTitle: "Save workout",
@@ -346,13 +346,13 @@ private struct WorkoutViewPreviewHost: View {
         ))
     }
 }
-#Preview("Light") {
-    WorkoutViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

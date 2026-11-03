@@ -137,13 +137,13 @@ private struct BottomSheetPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    BottomSheetPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     BottomSheetPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    BottomSheetPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

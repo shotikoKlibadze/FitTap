@@ -94,13 +94,13 @@ private struct SetValuePickerViewPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SetValuePickerViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     SetValuePickerViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    SetValuePickerViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -69,13 +69,13 @@ private struct PageDotsPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    PageDotsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     PageDotsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    PageDotsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

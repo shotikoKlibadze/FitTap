@@ -59,13 +59,13 @@ private struct WorkoutColorPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    WorkoutColorPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WorkoutColorPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WorkoutColorPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

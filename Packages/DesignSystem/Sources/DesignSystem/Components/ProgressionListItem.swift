@@ -99,13 +99,13 @@ private struct ProgressionListItemPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    ProgressionListItemPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     ProgressionListItemPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    ProgressionListItemPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

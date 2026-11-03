@@ -21,7 +21,7 @@ struct PlanDayView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
-                CardAddButton(title: "New workout", layout: .inline, action: onTapNewWorkout)
+                AddButton(title: "New workout", layout: .inline, action: onTapNewWorkout)
                 ForEach(items) { item in
                     WorkoutListItem(
                         title: item.title,
@@ -88,13 +88,13 @@ private struct PlanDayViewPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    PlanDayViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     PlanDayViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    PlanDayViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

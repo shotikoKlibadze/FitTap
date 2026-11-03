@@ -1,7 +1,7 @@
 import DesignSystem
 import Foundation
 
-/// One tile of the Stats balance card, ready for `SetCountButton`: a muscle
+/// One tile of the Stats balance card, ready for `CountTileButton`: a muscle
 /// group's name, its sets over the last four weeks, and whether that's
 /// behind the user's usual. "Arms" folds biceps and triceps together. No
 /// balance logic exists yet, so the screen model hands out the samples.
@@ -9,9 +9,9 @@ struct StatsBalanceItem: Identifiable, Hashable {
     let id: String
     let title: String
     let count: Int
-    let status: SetCountButton.Status
+    let status: CountTileButton.Status
 
-    init(title: String, count: Int, status: SetCountButton.Status) {
+    init(title: String, count: Int, status: CountTileButton.Status) {
         id = title
         self.title = title
         self.count = count

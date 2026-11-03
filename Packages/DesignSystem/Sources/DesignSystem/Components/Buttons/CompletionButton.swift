@@ -14,7 +14,7 @@ import SwiftUI
 /// The button never owns its status: it reports the status the user chose
 /// through `onChange`, and the owner writes it back. The capsule draws over
 /// the neighbours to the left, so the row's layout never shifts.
-public struct CheckmarkButton: View {
+public struct CompletionButton: View {
     public enum Status {
         case open
         case done
@@ -156,14 +156,14 @@ public struct CheckmarkButton: View {
 }
 
 #if DEBUG
-private struct CheckmarkButtonPreviewHost: View {
-    @State private var statuses: [CheckmarkButton.Status] = [.done, .failed, .open, .open]
+private struct CompletionButtonPreviewHost: View {
+    @State private var statuses: [CompletionButton.Status] = [.done, .failed, .open, .open]
 
     var body: some View {
         VStack(spacing: 20) {
             HStack(spacing: 16) {
                 ForEach(statuses.indices, id: \.self) { index in
-                    CheckmarkButton(status: statuses[index]) { statuses[index] = $0 }
+                    CompletionButton(status: statuses[index]) { statuses[index] = $0 }
                 }
             }
             Text("\(statuses.filter { $0 != .open }.count) of \(statuses.count) logged · hold one to fail it")
@@ -176,13 +176,13 @@ private struct CheckmarkButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    CheckmarkButtonPreviewHost()
-        .preferredColorScheme(.light)
+#Preview("Dark") {
+    CompletionButtonPreviewHost()
+        .preferredColorScheme(.dark)
 }
 
-#Preview("Dark") {
-    CheckmarkButtonPreviewHost()
-        .preferredColorScheme(.dark)
+#Preview("Light") {
+    CompletionButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

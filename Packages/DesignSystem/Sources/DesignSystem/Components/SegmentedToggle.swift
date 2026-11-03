@@ -59,13 +59,13 @@ private struct SegmentedTogglePreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    SegmentedTogglePreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     SegmentedTogglePreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    SegmentedTogglePreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

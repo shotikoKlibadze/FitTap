@@ -95,13 +95,13 @@ private struct WeightPickerPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WeightPickerPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WeightPickerPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WeightPickerPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

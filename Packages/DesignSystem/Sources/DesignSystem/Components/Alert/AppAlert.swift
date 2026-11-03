@@ -95,13 +95,13 @@ private struct AppAlertPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    AppAlertPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     AppAlertPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    AppAlertPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

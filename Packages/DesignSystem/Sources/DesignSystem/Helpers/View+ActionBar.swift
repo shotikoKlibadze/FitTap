@@ -69,13 +69,13 @@ private struct BottomActionBarPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    BottomActionBarPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     BottomActionBarPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    BottomActionBarPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

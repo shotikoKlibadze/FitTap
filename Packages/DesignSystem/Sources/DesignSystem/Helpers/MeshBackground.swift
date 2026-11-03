@@ -80,13 +80,13 @@ private struct MeshBackgroundPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    MeshBackgroundPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     MeshBackgroundPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    MeshBackgroundPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

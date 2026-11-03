@@ -90,13 +90,13 @@ private struct GradientsPreviewHost: View {
         .background(FTColors.background)
     }
 }
-#Preview("Light") {
-    GradientsPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     GradientsPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    GradientsPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

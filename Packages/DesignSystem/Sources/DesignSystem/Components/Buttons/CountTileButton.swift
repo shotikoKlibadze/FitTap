@@ -5,7 +5,7 @@ import SwiftUI
 /// user's usual — the fill goes, a red dashed border runs around it and the
 /// number and name turn red, the same dashed warning as a missed workout.
 /// Tapping opens that muscle group; the owner decides where.
-public struct SetCountButton: View {
+public struct CountTileButton: View {
     public enum Status {
         /// Around the usual — a plain tile.
         case onTrack
@@ -60,7 +60,7 @@ public struct SetCountButton: View {
 }
 
 #if DEBUG
-private struct SetCountButtonPreviewHost: View {
+private struct CountTileButtonPreviewHost: View {
     @State private var legsBehind = true
     @State private var lastTapped = "—"
 
@@ -69,10 +69,10 @@ private struct SetCountButtonPreviewHost: View {
     var body: some View {
         VStack(spacing: 16) {
             LazyVGrid(columns: columns, spacing: 8) {
-                SetCountButton(title: "Chest", count: 48, status: .onTrack) { lastTapped = "Chest" }
-                SetCountButton(title: "Back", count: 52, status: .onTrack) { lastTapped = "Back" }
-                SetCountButton(title: "Shoulders", count: 30, status: .onTrack) { lastTapped = "Shoulders" }
-                SetCountButton(title: "Legs", count: 8, status: legsBehind ? .behind : .onTrack) {
+                CountTileButton(title: "Chest", count: 48, status: .onTrack) { lastTapped = "Chest" }
+                CountTileButton(title: "Back", count: 52, status: .onTrack) { lastTapped = "Back" }
+                CountTileButton(title: "Shoulders", count: 30, status: .onTrack) { lastTapped = "Shoulders" }
+                CountTileButton(title: "Legs", count: 8, status: legsBehind ? .behind : .onTrack) {
                     legsBehind.toggle()
                 }
             }
@@ -86,13 +86,13 @@ private struct SetCountButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    SetCountButtonPreviewHost()
-        .preferredColorScheme(.light)
+#Preview("Dark") {
+    CountTileButtonPreviewHost()
+        .preferredColorScheme(.dark)
 }
 
-#Preview("Dark") {
-    SetCountButtonPreviewHost()
-        .preferredColorScheme(.dark)
+#Preview("Light") {
+    CountTileButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

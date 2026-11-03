@@ -74,13 +74,13 @@ private struct TileButtonPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    TileButtonPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     TileButtonPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    TileButtonPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

@@ -70,13 +70,13 @@ private struct RatingPillPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    RatingPillPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     RatingPillPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    RatingPillPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

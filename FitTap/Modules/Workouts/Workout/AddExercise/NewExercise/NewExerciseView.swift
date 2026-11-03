@@ -92,13 +92,13 @@ private struct NewExerciseViewPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    NewExerciseViewPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     NewExerciseViewPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    NewExerciseViewPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

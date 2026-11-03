@@ -128,13 +128,13 @@ private struct WeekStripPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WeekStripPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WeekStripPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WeekStripPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

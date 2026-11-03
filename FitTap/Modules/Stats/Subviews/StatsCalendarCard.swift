@@ -106,13 +106,13 @@ private struct StatsCalendarCardPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    StatsCalendarCardPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     StatsCalendarCardPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    StatsCalendarCardPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

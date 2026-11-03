@@ -92,13 +92,13 @@ private struct DurationPickerPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    DurationPickerPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     DurationPickerPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    DurationPickerPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

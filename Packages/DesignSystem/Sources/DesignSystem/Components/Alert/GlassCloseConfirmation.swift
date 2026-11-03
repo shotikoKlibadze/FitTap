@@ -142,13 +142,13 @@ private struct GlassCloseConfirmationPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    GlassCloseConfirmationPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     GlassCloseConfirmationPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    GlassCloseConfirmationPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif

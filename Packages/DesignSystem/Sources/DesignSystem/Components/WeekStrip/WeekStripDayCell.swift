@@ -165,13 +165,13 @@ private struct WeekStripDayCellPreviewHost: View {
     }
 }
 
-#Preview("Light") {
-    WeekStripDayCellPreviewHost()
-        .preferredColorScheme(.light)
-}
-
 #Preview("Dark") {
     WeekStripDayCellPreviewHost()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Light") {
+    WeekStripDayCellPreviewHost()
+        .preferredColorScheme(.light)
 }
 #endif
