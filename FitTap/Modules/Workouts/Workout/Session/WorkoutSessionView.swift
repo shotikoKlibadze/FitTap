@@ -43,6 +43,19 @@ struct WorkoutSessionView: View {
         }
     }
 
+    /// A binding to one exercise, looked up by id. The list loops over the
+    /// exercises as values, not `ForEach($exercises)`: the reorder container
+    /// crashes on a binding loop ("Unexpected identifier type").
+    private func binding(for exercise: WorkoutExercise) -> Binding<WorkoutExercise> {
+        Binding(
+            get: { exercises.first { $0.id == exercise.id } ?? exercise },
+            set: { updated in
+                guard let index = exercises.firstIndex(where: { $0.id == exercise.id }) else { return }
+                exercises[index] = updated
+            },
+        )
+    }
+
     /// The title row's height, so the floating ✕ lines up with its slot.
     private let titleRowHeight: CGFloat = 44
     /// The cards' inset from the screen edge — the summary card uses the
@@ -54,6 +67,11 @@ struct WorkoutSessionView: View {
     /// Gap between the summary card and the scrolling content.
     private let headerBottomPadding: CGFloat = 12
 
+    /// Bumped when a drag to reorder lifts a card — one tap of haptics.
+    @State private var reorderLift = 0
+    /// The drag session already announced, so its later updates stay quiet.
+    @State private var liftedDrag: DragSession.ID?
+
     /// The summary card's height, so the cards know where its top is.
     @State private var summaryHeight: CGFloat = 0
 
@@ -61,11 +79,11 @@ struct WorkoutSessionView: View {
         ScrollViewReader { scroller in
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach($exercises) { $workoutExercise in
+                    ForEach(exercises) { workoutExercise in
                         if let exercise = catalog[workoutExercise.exerciseID] {
                             SessionExerciseCard(
                                 exercise: exercise,
-                                workoutExercise: $workoutExercise,
+                                workoutExercise: binding(for: workoutExercise),
                                 onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
                                 onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
                                 onTapDuration: { onTapDuration(workoutExercise.id) },
@@ -89,7 +107,21 @@ struct WorkoutSessionView: View {
                             }
                         }
                     }
+                    // Hold an exercise and drag it to change the order mid-workout.
+                    .reorderable()
                 }
+                .reorderContainer(for: WorkoutExercise.self) { difference in
+                    withAnimation(.smooth(duration: 0.3)) {
+                        exercises.reorder(difference)
+                    }
+                }
+                // A light thud as the card lifts and reordering starts.
+                .onDragSessionUpdated { session in
+                    guard session.id != liftedDrag else { return }
+                    liftedDrag = session.id
+                    reorderLift += 1
+                }
+                .sensoryFeedback(.impact(weight: .medium), trigger: reorderLift)
             }
             .contentMargins(.horizontal, gutter, for: .scrollContent)
             // Room to scroll the last card clear of the Finish button.

@@ -22,6 +22,7 @@ struct HomeScreen: View {
             onTapToday: screenModel.didTapToday,
             onTapPlanWorkout: screenModel.didTapPlanWorkout,
             onTapSession: screenModel.didTapSession,
+            onDeleteSession: screenModel.didDeleteSession,
         )
         .navigate(to: $screenModel.destination)
         .bottomSheet(item: $screenModel.planningDay, height: { _ in PlanDayMetrics.sheetHeight }) { day in

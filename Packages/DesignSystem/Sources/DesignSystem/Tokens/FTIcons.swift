@@ -15,6 +15,7 @@ public enum FTIcons {
     public static let chevronRight = Image(systemName: "chevron.right")
     public static let chevronDown = Image(systemName: "chevron.down")
     public static let chevronUp = Image(systemName: "chevron.up")
+    public static let trash = Image(systemName: "trash")
     /// Trend arrows — a progression row's up, flat or down.
     public static let arrowUp = Image(systemName: "arrow.up")
     public static let arrowRight = Image(systemName: "arrow.right")
@@ -43,6 +44,7 @@ private let ftIconRows: [FTIconRow] = [
     FTIconRow(name: "chevronRight", image: FTIcons.chevronRight),
     FTIconRow(name: "chevronDown", image: FTIcons.chevronDown),
     FTIconRow(name: "chevronUp", image: FTIcons.chevronUp),
+    FTIconRow(name: "trash", image: FTIcons.trash),
 ]
 
 private struct FTIconsPreviewHost: View {

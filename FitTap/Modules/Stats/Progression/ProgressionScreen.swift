@@ -8,7 +8,7 @@ struct ProgressionScreen: View {
 
     var body: some View {
         ProgressionView(
-            items: screenModel.items,
+            sections: screenModel.sections,
             onTapExercise: { screenModel.didTapExercise(id: $0) },
         )
         .navigate(to: $screenModel.destination)

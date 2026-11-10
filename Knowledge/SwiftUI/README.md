@@ -1,12 +1,12 @@
-# SwiftUI graphics and motion
+# SwiftUI graphics, motion and reordering
 
-Reference notes on SwiftUI's visual-effect APIs, project-agnostic. These notes describe what exists, how it behaves, and what Apple states about it. They are more current than model training data.
+Reference notes on SwiftUI's visual-effect and drag-to-reorder APIs, project-agnostic. These notes describe what exists, how it behaves, and what Apple states about it. They are more current than model training data.
 
 API names and shapes are taken from Apple's published snippets (see `code/`) and, where noted, from Apple's documentation. Items marked ⚠️ are unconfirmed. Guidance Apple did **not** give is kept apart in §7 and marked as ours.
 
-**Platforms:** every API here is iOS 17+ (TextRenderer iOS 18+); nothing in these sessions is iOS 27-only.
+**Platforms:** the graphics APIs (§1–6) are iOS 17+ (TextRenderer iOS 18+). The reorder and drag-container APIs (§8) are new with the 2027 releases.
 **Code examples:** [`code/`](code/) — one file per ingested session, named after the video title, holding Apple's published snippets with timestamps. A file's presence means that session's transcript and code are ingested.
-**Sources:** WWDC24 10151 "Create custom visual effects with SwiftUI" (+ its sample project, CreateVisualEffectsDemo) · WWDC26 322 "Compose advanced graphics effects with SwiftUI"
+**Sources:** WWDC24 10151 "Create custom visual effects with SwiftUI" (+ its sample project, CreateVisualEffectsDemo) · WWDC26 322 "Compose advanced graphics effects with SwiftUI" · WWDC26 271 "Code-along: Build powerful drag and drop in SwiftUI" (+ Apple's docs: "Reordering items in lists, stacks, grids, and custom layouts", `reorderContainer`, `reorderable`, `ReorderDifference`)
 **Related:** the third-party MeshGradients demo (Stewart Lynch) was read for comparison; its driver is an anti-pattern, see §2.
 
 ---
@@ -112,3 +112,29 @@ Neither session says a word about battery, frame-rate caps, pausing, or Reduce M
 - Prefer a single Core Animation interpolation (`withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true))` between two point/color sets) over per-frame recomputation when the motion is a slow drift.
 - Gate shaders with `isEnabled` whenever they have nothing to show, as Ripple does.
 - Honor `accessibilityReduceMotion`: freeze the drift, keep the colors.
+
+---
+
+## 8. Drag to reorder — `reorderable` + `reorderContainer` (2027 releases)
+
+From WWDC26 271 and Apple's documentation. Works in a `List`, a stack, a grid or a custom layout — not only `List`.
+
+- **Two pieces.** Put `.reorderable()` on the `ForEach` (any `DynamicViewContent`, including `ForEach($binding)`), and `.reorderContainer(for:isEnabled:move:)` on the list, stack, grid or layout that holds it [271 3:40; docs `reorderable()`].
+- **Signature (single collection):** `reorderContainer<Item>(for: Item.Type, isEnabled: Bool = true, move: @escaping (ReorderDifference<Item.ID, ReorderableSingleCollectionIdentifier>) -> ()) where Item: Identifiable, Item.ID: Sendable` [docs]. `for:` takes the **element type**, not its id. Variants: `for:itemID:` (key path id, for non-`Identifiable` items), `for:in:` / `for:itemID:in:` with `reorderable(collectionID:)` for several collections (sections, piles) [docs; 271 4:40, 5:58].
+- **No `Transferable` needed** for reordering inside a container: "Reorder containers implicitly provide their own dragContainer and dropDestination capabilities" [271]. Transferable matters only for drags out of / into the container (`dragContainer`, `dropDestination`).
+- **Gesture:** a "system drag gesture" [docs] — on iPhone that's the standard long-press-then-drag. Apple: as the item lifts, "the system puts a placeholder view in its place to indicate where the view can drop", and the placeholder follows as it moves; the `move` closure runs once, "at the end of a session" [docs].
+- **`ReorderDifference<ItemID, CollectionID>`:** `sources: [ItemID]` (in the order selected) and `destination.position`: `.before(ItemID)` or `.end`, plus `destination.collectionID` [docs]. ⚠️ The session calls `cards.apply(difference:)`, but no `apply(difference:)` on `Array` appears in the docs; Apple's own extended example applies the difference by hand — remove the sources, then insert before the target or append [docs, "Controlling Drop Position During Reordering"].
+- **Turning it on and off:** pass `isEnabled:` (e.g. only while editing) instead of adding/removing the modifier [docs, "Dynamically enable and disable reordering"].
+- **More (not needed for a single list):** `dragContainer(for:) { ids in … }` + `.draggable(containerItemID:)` (lazy payloads, multi-item drags, "newly available on iOS, iPadOS, and visionOS 27"), `dragContainerSelection(_:)`, `dragPreviewsFormation(.pile | .list | .stack)`, `dropPreviewsFormation`, `DragConfiguration(allowMove:)`, `dropDestination(for:) { items, session in … }` with `session.reorderDestination(for:in:)`, and `dropConfiguration { session in DropConfiguration(operation:destination:) }` (the destination-targeting init is macOS-only) [271 7:50–12:05; docs].
+- Not covered by Apple: haptics, animation curves, auto-scrolling a `ScrollView` while dragging. ⚠️
+
+
+---
+
+## 9. Swipe actions outside `List` — `swipeActionsContainer()` (2027 releases)
+
+From Apple's documentation (no WWDC session ingested for it).
+
+- `.swipeActions(edge:allowsFullSwipe:content:)` now works on rows in a `ScrollView`, `LazyVStack` or similar, not only `List`. Put `.swipeActionsContainer()` on the scroll view: it "ensures that only one row's swipe actions are revealed at a time", "scrolling the container dismisses any open actions" and "tapping outside the active row dismisses its actions". On a `List` it's a no-op [docs `swipeActionsContainer()`].
+- Actions are `Button`s; `role: .destructive` styles red; `.tint(_:)` recolors; `allowsFullSwipe` (default `true`) runs the first action on a full swipe [docs `swipeActions`].
+- A variant `swipeActions(edge:allowsFullSwipe:content:onPresentationChanged:)` reports when the actions are revealed or dismissed [docs].

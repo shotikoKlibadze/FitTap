@@ -10,6 +10,7 @@ import SwiftUI
 /// edge below the subtitle.
 struct PlanDayView: View {
     let title: String
+    let subtitle: String
     let items: [PlanDayItem]
     let onOpenWorkout: (UUID) -> Void
     let onTapNewWorkout: () -> Void
@@ -57,7 +58,7 @@ struct PlanDayView: View {
                 .font(FTFonts.title3Semibold)
                 .foregroundStyle(FTColors.textPrimary)
                 .lineLimit(1)
-            Text("Open a workout to plan it.")
+            Text(subtitle)
                 .font(FTFonts.subheadline)
                 .foregroundStyle(FTColors.textSecondary)
         }
@@ -74,6 +75,7 @@ private struct PlanDayViewPreviewHost: View {
     var body: some View {
         PlanDayView(
             title: "Plan Workout for Today",
+            subtitle: "Open a workout to plan it.",
             items: PlanDayItem.samples,
             onOpenWorkout: { openedID = $0 },
             onTapNewWorkout: { newWorkoutTaps += 1 },

@@ -9,6 +9,9 @@ public struct AddButton: View {
         case stacked
         /// Plus beside the title on one short row — the first row of a list.
         case inline
+        /// Plus beside the title, as tall as a `WorkoutSessionCard` — an
+        /// empty slot in a list of session cards.
+        case row
     }
 
     let title: String
@@ -25,16 +28,34 @@ public struct AddButton: View {
     }
 
     /// The stacked card is tall enough for a soft 30; the short inline row
-    /// would read as a capsule, so it rounds less.
+    /// would read as a capsule, so it rounds less; the row matches the
+    /// session cards it sits among.
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: layout == .stacked ? 30 : 20, style: .continuous)
+        let radius: CGFloat = switch layout {
+        case .stacked: 30
+        case .inline: 20
+        case .row: 28
+        }
+        return RoundedRectangle(cornerRadius: radius, style: .continuous)
+    }
+
+    private var horizontalPadding: CGFloat {
+        layout == .row ? 16 : 20
+    }
+
+    private var verticalPadding: CGFloat {
+        switch layout {
+        case .stacked: 20
+        case .inline: 16
+        case .row: 15
+        }
     }
 
     public var body: some View {
         Button(action: action) {
             content
-                .padding(.horizontal, 20)
-                .padding(.vertical, layout == .stacked ? 20 : 16)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, verticalPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background {
                     shape
@@ -68,6 +89,24 @@ public struct AddButton: View {
                 Text(title)
                     .font(FTFonts.headline)
                     .foregroundStyle(FTColors.textPrimary)
+            }
+        case .row:
+            HStack(spacing: 12) {
+                plusCircle(diameter: 34, glyph: 16)
+                Text(title)
+                    .font(FTFonts.headlineBold)
+                    .foregroundStyle(FTColors.textPrimary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            // A session card is a bold title line over a footnote line; the
+            // same two lines, unseen, give the row its height at any text size.
+            .background {
+                VStack(spacing: 9) {
+                    Text(verbatim: "Title").font(FTFonts.headlineBold)
+                    Text(verbatim: "Stats").font(FTFonts.footnote)
+                }
+                .hidden()
             }
         }
     }
@@ -104,6 +143,7 @@ private struct AddButtonPreviewHost: View {
                     subtitle: "Add your first exercise to start building the workout.",
                 ) { tapCount += 1 }
                 AddButton(title: "New workout", layout: .inline) { tapCount += 1 }
+                AddButton(title: "Plan workout", layout: .row) { tapCount += 1 }
             }
             .padding()
         }

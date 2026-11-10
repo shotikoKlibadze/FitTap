@@ -19,6 +19,8 @@ struct HomeView: View {
     let onTapToday: () -> Void
     let onTapPlanWorkout: () -> Void
     let onTapSession: (UUID) -> Void
+    /// Swiped and tapped Delete (or swiped all the way) on a session card.
+    let onDeleteSession: (UUID) -> Void
 
     /// Which way the last week change went, so the week list slides with
     /// the swipe: a later week comes in from the right, an earlier one from
@@ -61,6 +63,9 @@ struct HomeView: View {
         .contentMargins(.horizontal, 16, for: .scrollContent)
         .contentMargins(.bottom, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
+        // Swipe actions on the session cards: one open at a time, closed by
+        // scrolling or a tap elsewhere.
+        .swipeActionsContainer()
         .background(FTColors.background)
     }
 
@@ -118,7 +123,7 @@ struct HomeView: View {
         if let dayItem {
             sessionCard(dayItem)
         } else if let dayAddTitle {
-            AddButton(title: dayAddTitle, action: onTapPlanWorkout)
+            AddButton(title: dayAddTitle, layout: .row, action: onTapPlanWorkout)
         }
     }
 
@@ -131,6 +136,16 @@ struct HomeView: View {
             status: item.status,
         ) {
             onTapSession(item.id)
+        }
+        // Swipe left to delete the session.
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                onDeleteSession(item.id)
+            } label: {
+                Label { Text("Delete") } icon: { FTIcons.trash }
+                    // Just the icon, centred; "Delete" stays for VoiceOver.
+                    .labelStyle(.iconOnly)
+            }
         }
     }
 }
@@ -168,6 +183,7 @@ private struct HomeViewPreviewHost: View {
             onTapToday: {},
             onTapPlanWorkout: {},
             onTapSession: { _ in },
+            onDeleteSession: { _ in },
         )
     }
 }

@@ -9,6 +9,7 @@ import SwiftUI
 struct WorkoutSessionScreen: View {
     @State private var screenModel: WorkoutSessionScreenModel
     @Environment(\.navigator) private var navigator
+    @State private var isAskingToUpdateWorkout = false
 
     init(sessionID: UUID, startedFresh: Bool) {
         _screenModel = State(initialValue: WorkoutSessionScreenModel(sessionID: sessionID, startedFresh: startedFresh))
@@ -38,11 +39,32 @@ struct WorkoutSessionScreen: View {
         .bottomSheet(item: $screenModel.setValuePicker, height: { _ in SetValuePickerMetrics.sheetHeight }) { context in
             SetValuePickerScreen(context: context, onPick: screenModel.applySetValue)
         }
+        .appAlert(
+            isPresented: $isAskingToUpdateWorkout,
+            title: "Update \(screenModel.title)?",
+            message: "You changed reps, weights or exercises. Keep them for this session only, or for every \(screenModel.title) too?",
+            actions: [
+                AppAlertAction("This Session Only") {
+                    screenModel.finish()
+                    close()
+                },
+                AppAlertAction("Update \(screenModel.title)") {
+                    screenModel.finish(updatingWorkout: true)
+                    close()
+                },
+            ],
+        )
         // The cover's own stack would show an empty bar; the top area replaces it.
         .toolbarVisibility(.hidden, for: .navigationBar)
     }
 
+    /// Finishes; if the plan changed during the workout, asks first whether
+    /// to keep the changes for the workout too.
     private func finish() {
+        if screenModel.hasChangedPlan {
+            isAskingToUpdateWorkout = true
+            return
+        }
         screenModel.finish()
         close()
     }

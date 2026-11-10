@@ -27,6 +27,8 @@ final class WorkoutSessionScreenModel {
     @Injected(\.workoutSessionStore) private var sessionStore
     @ObservationIgnored
     @Injected(\.exerciseStore) private var exerciseStore
+    @ObservationIgnored
+    @Injected(\.workoutStore) private var workoutStore
 
     init(sessionID: UUID, startedFresh: Bool) {
         self.sessionID = sessionID
@@ -125,11 +127,31 @@ final class WorkoutSessionScreenModel {
         sessionStore.update(session)
     }
 
-    /// Stamps the end — the session counts as done from here on.
-    func finish() {
+    /// The workout this session came from ("Leg Day"), if it still exists.
+    private var generalWorkout: WorkoutTemplate? {
+        sessionStore.session(id: sessionID).flatMap { workoutStore.template(id: $0.workout.id) }
+    }
+
+    /// Reps, weights, sets or order changed during the workout compared with
+    /// the workout's own plan — Finish asks whether to keep them for it.
+    var hasChangedPlan: Bool {
+        guard let generalWorkout else { return false }
+        var done = generalWorkout
+        done.exercises = exercises
+        return !generalWorkout.hasSamePlan(as: done)
+    }
+
+    /// Stamps the end — the session counts as done from here on. With
+    /// `updatingWorkout`, the workout itself takes this session's plan
+    /// (values, not what was logged), and the days following it show it.
+    func finish(updatingWorkout: Bool = false) {
         guard var session = sessionStore.session(id: sessionID) else { return }
         session.endedAt = .now
         sessionStore.update(session)
+        if updatingWorkout, var workout = generalWorkout {
+            workout.exercises = exercises
+            workoutStore.update(workout.asPlan())
+        }
     }
 
     // MARK: - Helpers

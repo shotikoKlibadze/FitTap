@@ -61,7 +61,7 @@ FitTap/SharedUI/                    // reusable UI that needs the app's models
 
 ## Hard rules — buttons
 
-- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `AddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one.
+- **Never hand-build a button. Every button comes from the package's `Components/Buttons/`** (`PillButton`, `GlassPillButton`, `RoundButton`, `AddButton`, …) — in screens, subviews, and new components alike. No inline `Button { … } label: { Text(…).background(Capsule()…) }`, no restyled copies of an existing one. Exception: the system draws row swipe actions (`.swipeActions`), so those are plain `Button(role:)` with a `Label` and an `FTIcons` icon.
 - **Pill buttons: pick the surface, then the meaning.** `GlassPillButton` for a screen's own actions pinned over its content (Save, Add, Plan for …); the flat `PillButton` inside sheets, alerts and cards — glass there would sit on glass. Both take the same `PillStyle`: `.primary` (green), `.secondary` (faint surface), `.destructive` (red), `.add` (faint surface, yellow text — "+ Add Set"), and the same `PillButtonSize`. **`MeshPillButton` (the moving gradient) is only for starting a workout** — "Start Workout"; every other main action is the green glass pill.
 - **A missing look goes inside the component — after the user's OK.** A new meaning → a case on `PillStyle` (both pills get it); a size → `PillButtonSize`; another button's variant → its own enum. Never a restyled copy or a one-off styled `Button` in place. Adding the case is a component change: ask first (see components above).
 - **The one exception: `AppToolbar`'s bar items.** They're plain glyphs on the system's shared glass, drawn inside `AppToolbar` — our own button chrome there breaks the push/pop morph.
@@ -113,5 +113,5 @@ A component's previews follow the `previews` skill: **exactly two, `"Dark"` then
 7. Components are dumb: properties, bindings, callbacks — nothing else.
 8. Every tappable element declares a `.contentShape(...)` matching its visible shape — taps land anywhere on it, never only on the text.
 9. Every alert is `.appAlert(...)` — centered over a dimmed app; never `.alert`, `.confirmationDialog`, or a custom overlay.
-10. Every button is a `Buttons/` component (toolbar items excepted); a missing look is a new case inside the button, after the user's OK — never a hand-built one.
+10. Every button is a `Buttons/` component (toolbar items and swipe actions excepted); a missing look is a new case inside the button, after the user's OK — never a hand-built one.
 11. The `DesignSystem` package never sees app models; its API is `public` with explicit `public init`s; its assets load with `bundle: .module`.

@@ -7,20 +7,17 @@ enum HomeScreenDestination: NavigationDestination {
     case workout(UUID, WorkoutScreenSource)
     /// "New workout" from the plan sheet.
     case newWorkout
-    /// Logging what was done on a past day.
-    case logWorkout(Date)
 
     var body: some View {
         switch self {
         case .workout(let id, let source): WorkoutScreen(workoutID: id, source: source)
         case .newWorkout: WorkoutScreen()
-        case .logWorkout(let day): LogWorkoutScreen(day: day)
         }
     }
 
     var method: NavigationMethod {
         switch self {
-        case .workout, .newWorkout, .logWorkout: .push
+        case .workout, .newWorkout: .push
         }
     }
 }

@@ -148,28 +148,29 @@ final class HomeScreenModel {
         selectedDay = today
     }
 
-    /// The empty day's add card: a past day opens logging, today and later
-    /// open the plan sheet.
+    /// The empty day's add card opens the sheet: to plan today or later, to
+    /// log a past day.
     func didTapPlanWorkout() {
         guard let selectedDay else { return }
-        if selectedDay < today {
-            destination = .logWorkout(selectedDay)
-        } else {
-            planningDay = selectedDay
-        }
+        planningDay = selectedDay
     }
 
-    /// A workout tapped in the plan sheet: the sheet closes and the workout
-    /// opens, offering "Plan for …" that day.
+    /// A workout tapped in the sheet: the sheet closes and the workout opens,
+    /// offering "Plan for …" that day — or, for a past day, "Log for …".
     func didOpenWorkoutWhilePlanning(id: UUID) {
         guard let day = planningDay else { return }
         planningDay = nil
-        destination = .workout(id, .planning(day))
+        destination = .workout(id, day < today ? .logging(day) : .planning(day))
     }
 
     func didTapNewWorkoutWhilePlanning() {
         planningDay = nil
         destination = .newWorkout
+    }
+
+    /// A session card swiped away: the session is deleted, no confirmation.
+    func didDeleteSession(id: UUID) {
+        sessionStore.remove(id: id)
     }
 
     /// Opens the session's workout. Planned and missed ones can still move to

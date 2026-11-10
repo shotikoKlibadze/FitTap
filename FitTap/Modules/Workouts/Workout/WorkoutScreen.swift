@@ -18,6 +18,7 @@ struct WorkoutScreen: View {
     @State private var screenModel: WorkoutScreenModel
     @State private var isShowingDiscardAlert = false
     @State private var isShowingPlannedAlert = false
+    @State private var isShowingSaveScopeAlert = false
     @State private var pendingDiscard = Discard.leave
     @Environment(\.navigator) private var navigator
 
@@ -32,7 +33,6 @@ struct WorkoutScreen: View {
         WorkoutView(
             isEditing: screenModel.isEditing,
             showsPlanButton: screenModel.showsPlanButton,
-            showsDeleteButton: screenModel.showsDeleteButton,
             showsStartButton: screenModel.showsStartButton,
             planDayTitle: screenModel.planDayTitle,
             isPlanning: $screenModel.isPlanning,
@@ -60,8 +60,8 @@ struct WorkoutScreen: View {
             onRemoveExercise: screenModel.removeExercise,
             onTapSave: handleSave,
             onTapStart: screenModel.didTapStartWorkout,
-            onTapDelete: handleDelete,
             onTapPlanDay: handlePlanDay,
+            onTapDelete: handleDelete,
             onSavePlan: screenModel.savePlan,
         )
         .navigate(to: $screenModel.destination)
@@ -83,6 +83,19 @@ struct WorkoutScreen: View {
             confirmTitle: "Discard",
             cancelTitle: "Keep Editing",
             onConfirm: { discard(pendingDiscard) },
+        )
+        .appAlert(
+            isPresented: $isShowingSaveScopeAlert,
+            title: "Save changes to \(screenModel.generalWorkoutName)?",
+            message: "Change only this day, or every \(screenModel.generalWorkoutName) — the days you've planned follow it.",
+            actions: [
+                AppAlertAction("This Day Only") {
+                    withAnimation(modeChange) { screenModel.save() }
+                },
+                AppAlertAction("Every \(screenModel.generalWorkoutName)") {
+                    withAnimation(modeChange) { screenModel.save(everywhere: true) }
+                },
+            ],
         )
         .appAlert(
             isPresented: $isShowingPlannedAlert,
@@ -117,13 +130,15 @@ struct WorkoutScreen: View {
         withAnimation(modeChange) { screenModel.didTapEdit() }
     }
 
-    /// Plans the workout for the plan sheet's day and goes back to Home.
+    /// Plans (or, for a past day, logs) the workout for the sheet's day and
+    /// goes back to Home.
     private func handlePlanDay() {
         screenModel.planForDay()
         close()
     }
 
-    /// Deletes the workout or the session and leaves — no confirmation.
+    /// Deletes the workout or the session (or drops a new one) and leaves —
+    /// no confirmation.
     private func handleDelete() {
         screenModel.delete()
         close()
@@ -155,10 +170,16 @@ struct WorkoutScreen: View {
         }
     }
 
+    /// Editing a day from Home asks first: this day only, or every session
+    /// of the workout.
     private func handleSave() {
         if screenModel.isNew {
             screenModel.save()
             return close()
+        }
+        if screenModel.asksSaveScope {
+            isShowingSaveScopeAlert = true
+            return
         }
         withAnimation(modeChange) { screenModel.save() }
     }

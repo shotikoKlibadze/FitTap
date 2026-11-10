@@ -18,6 +18,7 @@ struct PlanDayScreen: View {
     var body: some View {
         PlanDayView(
             title: screenModel.title,
+            subtitle: screenModel.subtitle,
             items: screenModel.items,
             onOpenWorkout: onOpenWorkout,
             onTapNewWorkout: onTapNewWorkout,

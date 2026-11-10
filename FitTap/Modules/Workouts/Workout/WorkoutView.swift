@@ -21,10 +21,7 @@ struct WorkoutView: View {
     let isEditing: Bool
     /// "Plan" beside "Start Workout" while reading.
     let showsPlanButton: Bool
-    /// A red "Delete" after "Start Workout" while reading.
-    let showsDeleteButton: Bool
-    /// "Start Workout" while reading; off for a day already done or missed,
-    /// where Delete then takes the whole row.
+    /// "Start Workout" while reading; off for a day already done or missed.
     let showsStartButton: Bool
     /// Opened to plan a day: "Plan for Tue 15" as the one main button, in
     /// place of Start.
@@ -56,8 +53,9 @@ struct WorkoutView: View {
     let onRemoveExercise: (UUID) -> Void
     let onTapSave: () -> Void
     let onTapStart: () -> Void
-    let onTapDelete: () -> Void
     let onTapPlanDay: () -> Void
+    /// Delete beside Save while editing.
+    let onTapDelete: () -> Void
     let onSavePlan: () -> Void
 
     /// Pairs the read-only pieces with the controls they become.
@@ -111,6 +109,9 @@ struct WorkoutView: View {
         // Room to scroll the last card clear of the bottom button and its fade.
         .contentMargins(.bottom, 32, for: .scrollContent)
         .scrollIndicators(.hidden)
+        // Swipe actions on the exercise cards while editing: one open at a
+        // time, closed by scrolling or a tap elsewhere.
+        .swipeActionsContainer()
         .scrollDismissesKeyboard(.interactively)
         // Dims the screen behind the open Plan card; a tap closes it.
         .overlay {
@@ -148,9 +149,10 @@ struct WorkoutView: View {
                         }
                     }
                 }
-                if showsDeleteButton && !isEditing {
+                // Editing, Delete sits beside Save — always available.
+                if isEditing {
                     GlassPillButton(title: "Delete", style: .destructive, action: onTapDelete)
-                        .frame(width: showsStartButton ? deleteButtonWidth : nil)
+                        .frame(width: deleteButtonWidth)
                         .transition(.opacity)
                 }
             }
@@ -173,9 +175,27 @@ struct WorkoutView: View {
         .background(FTColors.background)
     }
 
+    /// A binding to one exercise, looked up by id. The list loops over the
+    /// exercises as values, not `ForEach($exercises)`: the reorder container
+    /// crashes on a binding loop ("Unexpected identifier type").
+    private func binding(for exercise: WorkoutExercise) -> Binding<WorkoutExercise> {
+        Binding(
+            get: { exercises.first { $0.id == exercise.id } ?? exercise },
+            set: { updated in
+                guard let index = exercises.firstIndex(where: { $0.id == exercise.id }) else { return }
+                exercises[index] = updated
+            },
+        )
+    }
+
+    /// Bumped when a drag to reorder lifts a card — one tap of haptics.
+    @State private var reorderLift = 0
+    /// The drag session already announced, so its later updates stay quiet.
+    @State private var liftedDrag: DragSession.ID?
+
     /// About a third of the row, as in the design.
     private let planButtonWidth: CGFloat = 112
-    /// Just wide enough for "Delete", leaving Start the most room.
+    /// Just wide enough for "Delete", leaving Save the most room.
     private let deleteButtonWidth: CGFloat = 96
 
     private var hasPlanSlot: Bool {
@@ -263,41 +283,80 @@ struct WorkoutView: View {
         } else {
             section("Exercises") {
                 VStack(spacing: 12) {
-                    ForEach($exercises) { $workoutExercise in
-                        if let exercise = catalog[workoutExercise.exerciseID] {
-                            // A logged rating hangs under its card while
-                            // reading, as it did during the workout; it can't
-                            // be changed here.
-                            VStack(spacing: 0) {
-                                ExerciseCard(
-                                    exercise: exercise,
-                                    workoutExercise: $workoutExercise,
-                                    mode: isEditing ? .edit : .view,
-                                    onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
-                                    onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
-                                    onTapDuration: { onTapDuration(workoutExercise.id) },
-                                    onTapSpeed: { onTapSpeed(workoutExercise.id) },
-                                    onTapSuggestion: {},
-                                    onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
-                                )
-                                .zIndex(1)
-                                // Only for an exercise with every set completed: a
-                                // failed set needs no rating.
-                                if !isEditing, workoutExercise.allSetsCompleted, let effort = workoutExercise.effort {
-                                    RatingStrip(
-                                        prompt: "How did it feel?",
-                                        options: Effort.ratingOptions,
-                                        selectedID: .constant(effort.rawValue),
+                    // The reorder container holds only the exercises, as on
+                    // the session screen; "Add Exercise" sits outside it.
+                    VStack(spacing: 12) {
+                        ForEach(exercises) { workoutExercise in
+                            if let exercise = catalog[workoutExercise.exerciseID] {
+                                // A logged rating hangs under its card while
+                                // reading, as it did during the workout; it can't
+                                // be changed here.
+                                VStack(spacing: 0) {
+                                    ExerciseCard(
+                                        exercise: exercise,
+                                        workoutExercise: binding(for: workoutExercise),
+                                        mode: isEditing ? .edit : .view,
+                                        onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
+                                        onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
+                                        onTapDuration: { onTapDuration(workoutExercise.id) },
+                                        onTapSpeed: { onTapSpeed(workoutExercise.id) },
+                                        onTapSuggestion: {},
+                                        onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
                                     )
-                                    .allowsHitTesting(false)
-                                    .padding(.horizontal, RatingStrip.sideInset)
-                                    .padding(.top, -RatingStrip.cardOverlap)
-                                    .transition(.opacity)
+                                    .zIndex(1)
+                                    // Only for an exercise with every set completed: a
+                                    // failed set needs no rating.
+                                    if !isEditing, workoutExercise.allSetsCompleted, let effort = workoutExercise.effort {
+                                        RatingStrip(
+                                            prompt: "How did it feel?",
+                                            options: Effort.ratingOptions,
+                                            selectedID: .constant(effort.rawValue),
+                                        )
+                                        .allowsHitTesting(false)
+                                        .padding(.horizontal, RatingStrip.sideInset)
+                                        .padding(.top, -RatingStrip.cardOverlap)
+                                        .transition(.opacity)
+                                    }
                                 }
+                                // While editing, swipe left to delete the exercise.
+                                .swipeActions(edge: .trailing) {
+                                    if isEditing {
+                                        Button(role: .destructive) {
+                                            withAnimation(.smooth(duration: 0.25)) {
+                                                onRemoveExercise(workoutExercise.id)
+                                            }
+                                        } label: {
+                                            Label { Text("Delete") } icon: { FTIcons.trash }
+                                                // Just the icon, centred; "Delete" stays for VoiceOver.
+                                                .labelStyle(.iconOnly)
+                                        }
+                                    }
+                                }
+                                // Each row carries its exercise's id, as the
+                                // session's rows do, for the reorder container.
+                                .id(workoutExercise.id)
+                                .transition(.opacity)
                             }
-                            .transition(.opacity)
+                        }
+                        // While editing, hold an exercise and drag it to reorder.
+                        .reorderable()
+                    }
+                    .reorderContainer(for: WorkoutExercise.self, isEnabled: isEditing) { difference in
+                        withAnimation(.smooth(duration: 0.3)) {
+                            exercises.reorder(difference)
                         }
                     }
+                    // Reading, the cards are just to look at: no taps and no
+                    // long-press lift, which would start even with reordering
+                    // off. Scrolling still works — the scroll view owns it.
+                    .allowsHitTesting(isEditing)
+                    // A light thud as the card lifts and reordering starts.
+                    .onDragSessionUpdated { session in
+                        guard session.id != liftedDrag else { return }
+                        liftedDrag = session.id
+                        reorderLift += 1
+                    }
+                    .sensoryFeedback(.impact(weight: .medium), trigger: reorderLift)
                     if isEditing {
                         AddButton(title: "Add Exercise", action: onTapAddExercise)
                             .transition(.opacity)
@@ -338,7 +397,6 @@ private struct WorkoutViewPreviewHost: View {
             WorkoutView(
                 isEditing: modeIndex == 1,
                 showsPlanButton: true,
-                showsDeleteButton: true,
                 showsStartButton: true,
                 planDayTitle: nil,
                 isPlanning: $isPlanning,
@@ -370,8 +428,8 @@ private struct WorkoutViewPreviewHost: View {
                 onRemoveExercise: { id in exercises.removeAll { $0.id == id } },
                 onTapSave: { modeIndex = 0 },
                 onTapStart: {},
-                onTapDelete: {},
                 onTapPlanDay: {},
+                onTapDelete: {},
                 onSavePlan: { isPlanning = false },
             )
             .safeAreaInset(edge: .top) {

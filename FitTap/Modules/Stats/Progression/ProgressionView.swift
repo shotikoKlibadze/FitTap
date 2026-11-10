@@ -1,18 +1,26 @@
 import DesignSystem
 import SwiftUI
 
-/// Every logged exercise, one card each: its name, its latest best set and
-/// which way it's going. The title is in the toolbar.
+/// Every logged exercise in sections by muscle group, one card each: its
+/// name, its latest best set and which way it's going. The title is in the
+/// toolbar.
 struct ProgressionView: View {
-    let items: [StatsProgressionItem]
+    let sections: [ProgressionSection]
     let onTapExercise: (UUID) -> Void
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 10) {
-                ForEach(items) { item in
-                    ProgressionExerciseCard(item: item) {
-                        onTapExercise(item.id)
+            LazyVStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
+                    // Titles sit on the gutter like the cards; sections after
+                    // the first get a little air above.
+                    SectionHeader(title: section.title)
+                        .frame(minHeight: 30)
+                        .padding(.top, index == 0 ? 0 : 14)
+                    ForEach(section.items) { item in
+                        ProgressionExerciseCard(item: item) {
+                            onTapExercise(item.id)
+                        }
                     }
                 }
             }
@@ -29,7 +37,7 @@ private struct ProgressionViewPreviewHost: View {
     @State private var lastTapped: UUID?
 
     var body: some View {
-        ProgressionView(items: StatsProgressionItem.samples) { lastTapped = $0 }
+        ProgressionView(sections: ProgressionSection.samples) { lastTapped = $0 }
     }
 }
 

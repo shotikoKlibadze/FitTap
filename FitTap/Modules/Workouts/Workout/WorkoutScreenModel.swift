@@ -76,7 +76,7 @@ final class WorkoutScreenModel {
     private var openedSession: WorkoutSession? {
         switch source {
         case .plannedSession(let id), .finishedSession(let id): sessionStore.session(id: id)
-        case .library, .planning: nil
+        case .library, .planning, .logging: nil
         }
     }
 
@@ -139,36 +139,76 @@ final class WorkoutScreenModel {
     /// Start only where there's still something to do: the workout on its
     /// own, or a session still planned. A done or missed day has none.
     var showsStartButton: Bool {
-        if case .planning = source { return false }
+        if sheetDay != nil { return false }
         guard let openedSession else { return true }
         return openedSession.status == .planned
     }
 
-    /// Opened from Home's plan sheet: the one main button, "Plan for Tue 15"
-    /// (or "Plan for Today"). Nil otherwise.
-    var planDayTitle: String? {
-        guard case .planning(let day) = source else { return nil }
-        if calendar.isDateInToday(day) { return "Plan for Today" }
-        return "Plan for \(day.formatted(.dateTime.weekday(.abbreviated).day()))"
+    /// Opened from Home's sheet: the day, and whether it's logged (a past
+    /// day) rather than planned.
+    private var sheetDay: (day: Date, logs: Bool)? {
+        switch source {
+        case .planning(let day): (day, false)
+        case .logging(let day): (day, true)
+        case .library, .plannedSession, .finishedSession: nil
+        }
     }
 
-    /// Puts the workout on the plan sheet's day; it follows later edits to
-    /// the workout until it's started. The Screen then goes back to Home.
+    /// Opened from Home's sheet: the one main button — "Plan for Tue 15"
+    /// (or "Plan for Today"), or for a past day "Log for Mon 2". Nil
+    /// otherwise.
+    var planDayTitle: String? {
+        guard let sheetDay else { return nil }
+        if sheetDay.logs {
+            return "Log for \(sheetDay.day.formatted(.dateTime.weekday(.abbreviated).day()))"
+        }
+        if calendar.isDateInToday(sheetDay.day) { return "Plan for Today" }
+        return "Plan for \(sheetDay.day.formatted(.dateTime.weekday(.abbreviated).day()))"
+    }
+
+    /// Puts the workout on the sheet's day, then the Screen goes back to Home.
+    /// Planned, it follows later edits to the workout until it's started.
+    /// Logged, it's a finished session: every set done at its planned
+    /// values, starting at 18:00 and lasting as long as the workout usually
+    /// takes.
     func planForDay() {
-        guard case .planning(let day) = source, let storedWorkout else { return }
-        sessionStore.add(WorkoutSession(workout: storedWorkout, scheduledFor: day, followsWorkout: true))
+        guard let sheetDay, let storedWorkout else { return }
+        guard sheetDay.logs else {
+            sessionStore.add(WorkoutSession(workout: storedWorkout, scheduledFor: sheetDay.day, followsWorkout: true))
+            return
+        }
+        sessionStore.add(loggedSession(of: storedWorkout, on: sheetDay.day))
+    }
+
+    /// The workout as done on `day`: its own copy, every set checked off in
+    /// turn across the session, cardio started at the top.
+    private func loggedSession(of template: WorkoutTemplate, on day: Date) -> WorkoutSession {
+        let start = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: day) ?? day
+        let minutes = sessionStore.sessions.typicalMinutes(ofWorkout: template.id) ?? template.estimatedMinutes
+        let duration = TimeInterval(minutes * 60)
+        var workout = template.withFreshEntryIDs()
+        let setCount = max(workout.setCount, 1)
+        let gap = duration / Double(setCount + 1)
+        var logged = 0
+        for exercise in workout.exercises.indices {
+            workout.exercises[exercise].cardio?.startedAt = start
+            for set in workout.exercises[exercise].sets.indices {
+                logged += 1
+                workout.exercises[exercise].sets[set].loggedAt = start.addingTimeInterval(gap * Double(logged))
+                workout.exercises[exercise].sets[set].failed = false
+            }
+        }
+        return WorkoutSession(
+            workout: workout,
+            scheduledFor: day,
+            startedAt: start,
+            endedAt: start.addingTimeInterval(duration),
+        )
     }
 
     /// Only the workout on its own can be planned; a session already has a day.
     var showsPlanButton: Bool {
         source == .library
-    }
-
-    /// Delete sits beside Start wherever Start is: on any saved workout or
-    /// session, never while creating.
-    var showsDeleteButton: Bool {
-        if case .planning = source { return false }
-        return !isNew
     }
 
     /// The day of the session this was opened from, while it's still to come
@@ -250,16 +290,37 @@ final class WorkoutScreenModel {
         isEditing = false
     }
 
+    /// Opened from a day on Home while its workout still exists: Save first
+    /// asks whether the change is for this day only or for every session
+    /// of the workout.
+    var asksSaveScope: Bool {
+        openedSession != nil && generalWorkout != nil
+    }
+
+    /// The workout itself ("Leg Day"), as on the Workouts tab.
+    private var generalWorkout: WorkoutTemplate? {
+        workoutID.flatMap { workoutStore.template(id: $0) }
+    }
+
+    /// The workout's name for the save question.
+    var generalWorkoutName: String {
+        generalWorkout?.name ?? name
+    }
+
     /// Writes the draft to the store. An existing workout goes back to
-    /// reading; a new one is done — its screen closes. Opened from a planned
-    /// session, only that session changes.
-    func save() {
+    /// reading; a new one is done — its screen closes. Opened from a day on
+    /// Home, that day changes; with `everywhere`, the workout itself takes
+    /// the same plan too, so every planned day following it shows it.
+    func save(everywhere: Bool = false) {
         if isNew {
             workoutStore.add(workout)
             return
         }
         if let openedSession {
             sessionStore.updateWorkout(ofSession: openedSession.id, to: workout)
+            if everywhere, generalWorkout != nil {
+                workoutStore.update(workout.asPlan())
+            }
         } else {
             workoutStore.update(workout)
         }
@@ -308,19 +369,18 @@ final class WorkoutScreenModel {
         self.planDate = nil
     }
 
-    /// Deletes straight away, no confirmation; the Screen closes afterwards.
-    /// Opened from Home, only that day's session goes — planned or logged —
-    /// and the workout stays. Opened from the Workouts tab, the workout goes;
-    /// its planned days keep their own copy.
+    /// Delete while editing — always available, no confirmation; the Screen
+    /// closes afterwards. Opened from a day on Home, only that day's session
+    /// goes and the workout stays. Opened on its own (or to plan a day), the
+    /// workout goes; days already planned with it keep their own copy. A new
+    /// workout was never saved, so there's nothing to remove.
     func delete() {
         switch source {
         case .plannedSession(let id), .finishedSession(let id):
             sessionStore.remove(id: id)
-        case .library:
+        case .library, .planning, .logging:
             guard let workoutID else { return }
             workoutStore.remove(id: workoutID)
-        case .planning:
-            break
         }
     }
 
