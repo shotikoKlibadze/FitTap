@@ -12,7 +12,9 @@ struct SessionCardItem: Identifiable, Hashable {
     let stats: [String]
     let status: WorkoutSessionCard.Status
 
-    init(session: WorkoutSession) {
+    /// `typicalMinutes`: how long this workout usually takes the user, shown
+    /// on a planned strength session; nil falls back to the per-set guess.
+    init(session: WorkoutSession, typicalMinutes: Int? = nil) {
         id = session.id
         title = session.workout.name
         dotColor = session.workout.color.color
@@ -22,13 +24,13 @@ struct SessionCardItem: Identifiable, Hashable {
         case .planned: .planned
         case .missed: .missed
         }
-        stats = Self.stats(for: session)
+        stats = Self.stats(for: session, typicalMinutes: typicalMinutes)
     }
 
     /// Done: how long it took and what was in it ("58 min · 6 exercises ·
-    /// 21 sets", "34 min · 6.2 km · 5:29 /km"). Planned: what's in it and a
-    /// rough length. Missed: just what was in it.
-    private static func stats(for session: WorkoutSession) -> [String] {
+    /// 21 sets", "34 min · 6.2 km · 5:29 /km"). Planned: what's in it and how
+    /// long it usually takes. Missed: just what was in it.
+    private static func stats(for session: WorkoutSession, typicalMinutes: Int?) -> [String] {
         let exercises = session.workout.exercises
         switch session.workout.type {
         case .cardio:
@@ -53,7 +55,7 @@ struct SessionCardItem: Identifiable, Hashable {
             stats.append("\(exercises.count) exercises")
             stats.append("\(session.workout.setCount) sets")
             if session.status == .planned {
-                stats.append("~\(session.workout.estimatedMinutes) min")
+                stats.append("~\(typicalMinutes ?? session.workout.estimatedMinutes) min")
             }
             return stats
         }

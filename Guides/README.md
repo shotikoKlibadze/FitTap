@@ -8,7 +8,7 @@ Ask Claude to "open the SwiftData guide" (or any name below), or open the link y
 
 | Guide | Link | Covers | Source | Updated |
 |---|---|---|---|---|
-| SwiftData Rules | https://claude.ai/artifact/GbcaYPbSCSQY7AoLoT2Uth | How the app saves data: the layers, who may touch the database, the session lifecycle, why each choice was made, build order | [SwiftDataRules.html](SwiftDataRules.html) · plan: [SwiftDataPlanning.md](../Planning/SwiftDataPlanning.md) | 2026-10-29 |
+| SwiftData Rules | https://claude.ai/artifact/GbcaYPbSCSQY7AoLoT2Uth | How the app saves data: the layers, who may touch the database, the session lifecycle, how Stats counts, why each choice was made, build order | [SwiftDataRules.html](SwiftDataRules.html) · plan: [SwiftDataPlanning.md](../Planning/SwiftDataPlanning.md) | 2026-11-03 |
 
 ## When a guide is made or updated
 

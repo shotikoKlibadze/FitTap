@@ -46,6 +46,19 @@ struct SetValuePickerView: View {
                     customText: $customText,
                     onSaveCustom: onSaveCustom,
                 )
+            case .holdTime:
+                DurationPicker(
+                    subtitle: subtitle,
+                    values: values,
+                    selection: $selection,
+                    isCustom: $isCustom,
+                    customText: $customText,
+                    onSaveCustom: onSaveCustom,
+                    title: title,
+                    customTitle: customTitle,
+                    customUnit: "s",
+                    label: HoldTimeFormatter.text,
+                )
             case .speed:
                 SpeedPicker(subtitle: subtitle, text: $customText, onSet: onSaveCustom)
             }

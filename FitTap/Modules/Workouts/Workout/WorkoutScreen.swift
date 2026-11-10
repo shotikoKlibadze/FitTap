@@ -32,6 +32,9 @@ struct WorkoutScreen: View {
         WorkoutView(
             isEditing: screenModel.isEditing,
             showsPlanButton: screenModel.showsPlanButton,
+            showsDeleteButton: screenModel.showsDeleteButton,
+            showsStartButton: screenModel.showsStartButton,
+            planDayTitle: screenModel.planDayTitle,
             isPlanning: $screenModel.isPlanning,
             planDate: $screenModel.planDate,
             planTitle: screenModel.planTitle,
@@ -57,6 +60,8 @@ struct WorkoutScreen: View {
             onRemoveExercise: screenModel.removeExercise,
             onTapSave: handleSave,
             onTapStart: screenModel.didTapStartWorkout,
+            onTapDelete: handleDelete,
+            onTapPlanDay: handlePlanDay,
             onSavePlan: screenModel.savePlan,
         )
         .navigate(to: $screenModel.destination)
@@ -110,6 +115,18 @@ struct WorkoutScreen: View {
 
     private func startEditing() {
         withAnimation(modeChange) { screenModel.didTapEdit() }
+    }
+
+    /// Plans the workout for the plan sheet's day and goes back to Home.
+    private func handlePlanDay() {
+        screenModel.planForDay()
+        close()
+    }
+
+    /// Deletes the workout or the session and leaves — no confirmation.
+    private func handleDelete() {
+        screenModel.delete()
+        close()
     }
 
     /// Leaves the screen; while editing, unsaved changes ask first.

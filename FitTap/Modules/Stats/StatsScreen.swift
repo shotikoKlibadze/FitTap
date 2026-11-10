@@ -1,3 +1,4 @@
+import NavigatorUI
 import SwiftUI
 
 struct StatsScreen: View {
@@ -7,6 +8,7 @@ struct StatsScreen: View {
         StatsView(
             suggestion: screenModel.suggestion,
             calendarMonths: screenModel.calendarMonths,
+            currentMonthID: screenModel.currentMonthID,
             progressionItems: screenModel.progressionItems,
             cardioWeekMinutes: screenModel.cardioWeekMinutes,
             cardioMonthMinutes: screenModel.cardioMonthMinutes,
@@ -18,5 +20,10 @@ struct StatsScreen: View {
             onTapProgression: { screenModel.didTapProgression(id: $0) },
             onTapBalance: { screenModel.didTapBalance(id: $0) },
         )
+        .navigate(to: $screenModel.destination)
+        // Recount on first show and whenever a session is saved.
+        .task(id: screenModel.dataRevision) {
+            screenModel.reload()
+        }
     }
 }

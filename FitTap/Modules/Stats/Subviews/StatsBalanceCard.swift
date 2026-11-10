@@ -1,7 +1,7 @@
 import DesignSystem
 import SwiftUI
 
-/// The balance card on the Stats tab: "Sets in the last 4 weeks" over a
+/// The balance card on the Stats tab: "Sessions in the last 4 weeks" over a
 /// four-column grid of `CountTileButton` tiles, one per muscle group. Tapping
 /// a tile reports its id.
 struct StatsBalanceCard: View {
@@ -12,7 +12,7 @@ struct StatsBalanceCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Sets in the last 4 weeks")
+            Text("Sessions in the last 4 weeks")
                 .font(FTFonts.subheadline)
                 .foregroundStyle(FTColors.textSecondary)
             LazyVGrid(columns: columns, spacing: 8) {

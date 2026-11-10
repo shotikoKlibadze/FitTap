@@ -13,6 +13,10 @@ struct HomeView: View {
     let dayAddTitle: String?
     let weekListTitle: String
     let weekItems: [SessionCardItem]
+    /// Bumped when "Today" lands where the user already is; the strip's ring
+    /// flashes.
+    let todayFlash: Int
+    let onTapToday: () -> Void
     let onTapPlanWorkout: () -> Void
     let onTapSession: (UUID) -> Void
 
@@ -26,13 +30,14 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 ProfileHeader(image: nil, title: profileTitle, subtitle: profileSubtitle)
                     .padding(.bottom, 22)
-                SectionHeader(title: weekTitle)
+                SectionHeader(title: weekTitle, actionTitle: "Today", seeAllAction: onTapToday)
                     .contentTransition(.opacity)
                     .padding(.bottom, 12)
                 WeekStrip(
                     weeks: weeks,
                     currentWeek: sliding($currentWeek, forward: $weekForward),
                     selectedDay: $selectedDay,
+                    flashTrigger: todayFlash,
                 )
                 // Out of the screen gutter to the edges; the strip insets
                 // its own weeks back onto it.
@@ -159,6 +164,8 @@ private struct HomeViewPreviewHost: View {
             dayAddTitle: "Plan workout",
             weekListTitle: "Ongoing Week",
             weekItems: SessionCardItem.samples,
+            todayFlash: 0,
+            onTapToday: {},
             onTapPlanWorkout: {},
             onTapSession: { _ in },
         )

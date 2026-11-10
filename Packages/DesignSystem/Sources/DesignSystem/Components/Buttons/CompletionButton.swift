@@ -5,15 +5,17 @@ import SwiftUI
 /// failed, a red ring around a red ✕.
 ///
 /// A tap flips between open and done (and takes a failed one back to open).
-/// Holding it opens a second choice: the circle morphs into a capsule with
-/// a green ✓ and a red ✕, so a set can be marked failed — attempted, not
+/// Holding it opens a second choice: the circle grows upward into a tall
+/// capsule with a red ✕ where the button was and a green ✓ above it, each
+/// as big as the button, so a set can be marked failed — attempted, not
 /// completed. Picking one collapses it; left alone, it collapses on its own
 /// after a few seconds with nothing changed. Holding a done or failed set
 /// works the same, so a wrong pick can be corrected.
 ///
 /// The button never owns its status: it reports the status the user chose
 /// through `onChange`, and the owner writes it back. The capsule draws over
-/// the neighbours to the left, so the row's layout never shifts.
+/// whatever sits above it (the previous set's row), so the layout never
+/// shifts.
 public struct CompletionButton: View {
     public enum Status {
         case open
@@ -31,8 +33,7 @@ public struct CompletionButton: View {
 
     public static let diameter: CGFloat = 36
 
-    /// Each choice in the open capsule.
-    private let choiceDiameter: CGFloat = 30
+    /// The gap around and between the choices in the open capsule.
     private let capsulePadding: CGFloat = 3
     /// How long the capsule waits for a pick before closing by itself.
     private let autoCloseDelay: Duration = .seconds(3)
@@ -42,16 +43,18 @@ public struct CompletionButton: View {
 
     public var body: some View {
         // The slot in the layout is always the collapsed circle; the capsule
-        // floats over it, growing leftwards from the same trailing edge.
+        // floats over it, growing upwards from the same bottom edge.
         Color.clear
             .frame(width: Self.diameter, height: Self.diameter)
-            .overlay(alignment: .trailing) {
+            .overlay(alignment: .bottom) {
                 if isExpanded {
                     choices
-                        .transition(.scale(scale: 0.5, anchor: .trailing).combined(with: .opacity))
+                        // Its ✕ sits exactly where the button was.
+                        .offset(y: capsulePadding)
+                        .transition(.scale(scale: 0.5, anchor: .bottom).combined(with: .opacity))
                 } else {
                     mark
-                        .transition(.scale(scale: 0.5, anchor: .trailing).combined(with: .opacity))
+                        .transition(.scale(scale: 0.5, anchor: .bottom).combined(with: .opacity))
                 }
             }
             .animation(.smooth(duration: 0.25), value: isExpanded)
@@ -86,9 +89,9 @@ public struct CompletionButton: View {
             }
     }
 
-    /// The open capsule: ✓ on the left, ✕ on the right.
+    /// The open capsule: ✓ on top, ✕ below where the button was.
     private var choices: some View {
-        HStack(spacing: 4) {
+        VStack(spacing: capsulePadding) {
             choice(.done)
             choice(.failed)
         }
@@ -102,7 +105,7 @@ public struct CompletionButton: View {
             onChange(picked)
         } label: {
             glyph(for: picked, onFill: true)
-                .frame(width: choiceDiameter, height: choiceDiameter)
+                .frame(width: Self.diameter, height: Self.diameter)
                 .background(Circle().fill(fill(for: picked)))
                 .overlay {
                     if picked == .failed {

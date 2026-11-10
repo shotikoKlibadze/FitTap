@@ -34,6 +34,15 @@ struct WorkoutSessionView: View {
     let onEndWorkout: () -> Void
     let onFinish: () -> Void
 
+    /// Rating an exercise moves on: the next one scrolls up to the top,
+    /// ready for its first set. The last one stays put.
+    private func scrollPast(_ id: UUID, with scroller: ScrollViewProxy) {
+        guard let index = exercises.firstIndex(where: { $0.id == id }), index + 1 < exercises.count else { return }
+        withAnimation(.smooth(duration: 0.45)) {
+            scroller.scrollTo(exercises[index + 1].id, anchor: .top)
+        }
+    }
+
     /// The title row's height, so the floating ✕ lines up with its slot.
     private let titleRowHeight: CGFloat = 44
     /// The cards' inset from the screen edge — the summary card uses the
@@ -49,61 +58,44 @@ struct WorkoutSessionView: View {
     @State private var summaryHeight: CGFloat = 0
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                ForEach($exercises) { $workoutExercise in
-                    if let exercise = catalog[workoutExercise.exerciseID] {
-                        // The card, and under it — once every set is checked —
-                        // the "How did it feel?" tab tucked behind its bottom
-                        // edge. Unchecking a set slides the tab back up. The
-                        // two move as one piece below.
-                        VStack(spacing: 0) {
-                            ExerciseCard(
+        ScrollViewReader { scroller in
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach($exercises) { $workoutExercise in
+                        if let exercise = catalog[workoutExercise.exerciseID] {
+                            SessionExerciseCard(
                                 exercise: exercise,
                                 workoutExercise: $workoutExercise,
-                                mode: .session,
                                 onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
                                 onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
                                 onTapDuration: { onTapDuration(workoutExercise.id) },
                                 onTapSpeed: { onTapSpeed(workoutExercise.id) },
-                                onTapSuggestion: {},
-                                onRemoveExercise: {},
+                                onRated: { scrollPast(workoutExercise.id, with: scroller) },
                             )
-                            .zIndex(1)
-                            if workoutExercise.allSetsLogged {
-                                RatingStrip(
-                                    prompt: "How did it feel?",
-                                    options: Effort.ratingOptions,
-                                    selectedID: $workoutExercise.effort.ratingID,
-                                )
-                                .padding(.horizontal, RatingStrip.sideInset)
-                                .padding(.top, -RatingStrip.cardOverlap)
-                                .transition(.move(edge: .top))
+                            .id(workoutExercise.id)
+                            // A card scrolls under the summary untouched; once its
+                            // top reaches the summary's top it holds there,
+                            // shrinks, blurs and fades — the cards stack away
+                            // behind the summary instead of scrolling on past it.
+                            // The scroll space starts at the header's bottom, so
+                            // the summary's top is `summaryTop` above zero.
+                            .visualEffect { [summaryTop] content, proxy in
+                                let distance = min(0, proxy.frame(in: .scrollView(axis: .vertical)).minY + summaryTop)
+                                return content
+                                    .scaleEffect(1 + distance / 700)
+                                    .offset(y: -distance / 1.25)
+                                    .blur(radius: -distance / 50)
+                                    .opacity(1 + distance / 140)
                             }
-                        }
-                        .animation(.spring(duration: 0.4), value: workoutExercise.allSetsLogged)
-                        // A card scrolls under the summary untouched; once its
-                        // top reaches the summary's top it holds there,
-                        // shrinks, blurs and fades — the cards stack away
-                        // behind the summary instead of scrolling on past it.
-                        // The scroll space starts at the header's bottom, so
-                        // the summary's top is `summaryTop` above zero.
-                        .visualEffect { [summaryTop] content, proxy in
-                            let distance = min(0, proxy.frame(in: .scrollView(axis: .vertical)).minY + summaryTop)
-                            return content
-                                .scaleEffect(1 + distance / 700)
-                                .offset(y: -distance / 1.25)
-                                .blur(radius: -distance / 50)
-                                .opacity(1 + distance / 140)
                         }
                     }
                 }
             }
+            .contentMargins(.horizontal, gutter, for: .scrollContent)
+            // Room to scroll the last card clear of the Finish button.
+            .contentMargins(.bottom, 32, for: .scrollContent)
+            .scrollIndicators(.hidden)
         }
-        .contentMargins(.horizontal, gutter, for: .scrollContent)
-        // Room to scroll the last card clear of the Finish button.
-        .contentMargins(.bottom, 32, for: .scrollContent)
-        .scrollIndicators(.hidden)
         .safeAreaInset(edge: .top, spacing: 0) {
             header
         }

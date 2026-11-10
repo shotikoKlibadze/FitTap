@@ -11,6 +11,8 @@ struct SetValuePickerContext: Hashable, Sendable {
         case duration
         /// Cardio speed, in km/h.
         case speed
+        /// A hold set's time, in seconds.
+        case holdTime
     }
 
     let field: Field
@@ -27,10 +29,17 @@ struct SetValuePickerContext: Hashable, Sendable {
 
 extension SetValuePickerContext {
     /// Reps or weight of one set, starting on its current value; nil when the
-    /// set is gone.
+    /// set is gone. A hold set has one value, its time: the card reports it
+    /// as reps, and it opens as `.holdTime` here.
     static func set(_ field: Field, of workoutExercise: WorkoutExercise, setID: UUID, exercise: Exercise) -> Self? {
         guard let setIndex = workoutExercise.sets.firstIndex(where: { $0.id == setID }) else { return nil }
         let set = workoutExercise.sets[setIndex]
+        let field = exercise.kind == .hold ? .holdTime : field
+        let currentValue: Double? = switch field {
+        case .reps: Double(set.reps)
+        case .holdTime: set.duration
+        case .weight, .duration, .speed: set.weight
+        }
         return SetValuePickerContext(
             field: field,
             workoutExerciseID: workoutExercise.id,
@@ -39,7 +48,7 @@ extension SetValuePickerContext {
             setNumber: setIndex + 1,
             exerciseKind: exercise.kind,
             loadMode: exercise.loadMode,
-            currentValue: field == .reps ? Double(set.reps) : set.weight,
+            currentValue: currentValue,
         )
     }
 

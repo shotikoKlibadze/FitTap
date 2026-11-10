@@ -12,7 +12,7 @@ enum WorkoutData {
         strength("Leg Day", color: .gold, primary: .legs,
                  "Back Squat", "RDL", "Leg Press", "Leg Extension", "Bulgarian Split Squat"),
         strength("Back Day", color: .green, primary: .back,
-                 "Deadlift", "Pull-Ups", "Bent-Over Row", "Low Row Machine", "Technogym Row Machine"),
+                 "Deadlift", "Pull-Ups", "Bent-Over Row", "Low Row Machine", "Row Machine"),
         strength("Shoulder Day", color: .yellow, primary: .shoulders,
                  "Standing OHP", "Arnold Press", "Rear Delt Fly", "EZ Bar High Pull", "DB Lateral Raises", "Shoulder Press Machine"),
         strength("Limbs Day", color: .red, primary: .legs, secondary: .biceps,
@@ -59,7 +59,9 @@ enum WorkoutData {
 
     /// Three sets of ten — a plain starting point the user taps to adjust.
     private static func plannedSets(for exercise: Exercise) -> [SetEntry] {
-        (0..<3).map { SetEntry(order: $0, reps: 10, weight: exercise.kind == .weightlifting ? 20 : nil) }
+        (0..<3).map {
+            SetEntry(order: $0, reps: 10, weight: exercise.kind == .weightlifting ? 20 : nil, duration: exercise.kind == .hold ? 60 : nil)
+        }
     }
 
     private static func exercise(named name: String) -> Exercise {

@@ -20,6 +20,9 @@ struct SetEntry: Identifiable, Hashable, Codable, Sendable {
     /// the check and chose ✕. It's still logged (`loggedAt` is set), so it
     /// counts toward progress; stats read this to mark the session.
     var failed: Bool
+    /// How long the set was held, in seconds. Hold exercises only; nil for
+    /// every other kind.
+    var duration: TimeInterval?
 
     init(
         id: UUID = UUID(),
@@ -28,6 +31,7 @@ struct SetEntry: Identifiable, Hashable, Codable, Sendable {
         weight: Double? = nil,
         loggedAt: Date? = nil,
         failed: Bool = false,
+        duration: TimeInterval? = nil,
     ) {
         self.id = id
         self.order = order
@@ -35,5 +39,6 @@ struct SetEntry: Identifiable, Hashable, Codable, Sendable {
         self.weight = weight
         self.loggedAt = loggedAt
         self.failed = failed
+        self.duration = duration
     }
 }

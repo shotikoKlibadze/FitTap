@@ -17,13 +17,25 @@ struct WeekStrip: View {
     let weeks: [WeekStripWeek]
     @Binding var currentWeek: WeekStripWeek.ID?
     @Binding var selectedDay: WeekStripDay.ID?
+    /// Each change flashes the selection ring white for a moment — "you're
+    /// already here".
+    let flashTrigger: Int
 
-    init(weeks: [WeekStripWeek], currentWeek: Binding<WeekStripWeek.ID?>, selectedDay: Binding<WeekStripDay.ID?>) {
+    init(
+        weeks: [WeekStripWeek],
+        currentWeek: Binding<WeekStripWeek.ID?>,
+        selectedDay: Binding<WeekStripDay.ID?>,
+        flashTrigger: Int = 0,
+    ) {
         self.weeks = weeks
         _currentWeek = currentWeek
         _selectedDay = selectedDay
+        self.flashTrigger = flashTrigger
         _scrolledWeek = State(initialValue: currentWeek.wrappedValue)
     }
+
+    /// The ring is mid-flash.
+    @State private var isFlashing = false
 
     /// The page the scroll view reports. Scroll updates land without an
     /// animation, so the strip republishes them to `currentWeek` inside one —
@@ -84,9 +96,18 @@ struct WeekStrip: View {
             }
         }
         .onChange(of: currentWeek) { _, week in
-            // The owner moved the week itself; follow it.
+            // The owner moved the week itself; scroll there.
             if week != scrolledWeek {
-                scrolledWeek = week
+                withAnimation(.smooth(duration: 0.45)) {
+                    scrolledWeek = week
+                }
+            }
+        }
+        .onChange(of: flashTrigger) {
+            withAnimation(.easeOut(duration: 0.12)) { isFlashing = true }
+            Task {
+                try? await Task.sleep(for: .milliseconds(220))
+                withAnimation(.easeIn(duration: 0.3)) { isFlashing = false }
             }
         }
     }
@@ -108,7 +129,7 @@ struct WeekStrip: View {
     private func selectionRing(in week: WeekStripWeek) -> some View {
         if let selectedDay, week.days.contains(where: { $0.id == selectedDay }) {
             WeekStripDayCell.shape
-                .strokeBorder(FTColors.greenAccent, lineWidth: 2)
+                .strokeBorder(isFlashing ? FTColors.textPrimary : FTColors.greenAccent, lineWidth: 2)
                 .matchedGeometryEffect(id: selectedDay, in: cells, isSource: false)
                 .allowsHitTesting(false)
                 .transition(.opacity)

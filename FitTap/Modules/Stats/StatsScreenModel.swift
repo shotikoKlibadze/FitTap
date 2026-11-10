@@ -1,23 +1,34 @@
+import DesignSystem
 import FactoryKit
 import Foundation
 
 @MainActor
 @Observable
 final class StatsScreenModel {
+    var destination: StatsScreenDestination?
+
     @ObservationIgnored @Injected(\.workoutSessionStore) private var sessionStore
+    @ObservationIgnored @Injected(\.statsStore) private var statsStore
+    @ObservationIgnored @Injected(\.exerciseStore) private var exerciseStore
 
-    /// The one suggestion the tab leads with. Stand-in until the coach
-    /// writes them; nil hides the section.
-    var suggestion: StatsSuggestionItem? {
-        #if DEBUG
-        StatsSuggestionItem.sample
-        #else
-        nil
-        #endif
-    }
+    /// The one suggestion the tab leads with: the muscle group furthest
+    /// behind, if any is. Nil hides the section.
+    private(set) var suggestion: StatsSuggestionItem?
+    private(set) var progressionItems: [StatsProgressionItem] = []
+    private(set) var balanceItems: [StatsBalanceItem] = []
+    private(set) var cardioWeekMinutes = 0
+    private(set) var cardioMonthMinutes = 0
 
-    /// Every month with a session, oldest first, through this month at
-    /// least — one page each. The sample data until persistence lands.
+    /// Changes whenever a session is saved; the screen reloads on it.
+    var dataRevision: Int { statsStore.revision }
+
+    /// How far back balance counts sets.
+    private let balanceDays = 28
+    /// A group is behind below this share of the average group.
+    private let behindShare = 0.5
+
+    /// Every month with a session, oldest first, through next month at least
+    /// — one page each. The tab opens on this month (`currentMonthID`).
     var calendarMonths: [StatsCalendarMonth] {
         let calendar = WeekCalendar.calendar
         let sessions = sessionStore.sessions
@@ -27,7 +38,8 @@ final class StatsScreenModel {
         let thisMonth = monthStart(.now)
         let dates = sessions.map(\.scheduledFor)
         let first = dates.min().map(monthStart) ?? thisMonth
-        let last = max(dates.max().map(monthStart) ?? thisMonth, thisMonth)
+        let nextMonth = calendar.date(byAdding: .month, value: 1, to: thisMonth) ?? thisMonth
+        let last = max(dates.max().map(monthStart) ?? nextMonth, nextMonth)
 
         var months: [Date] = []
         var month = min(first, thisMonth)
@@ -39,26 +51,31 @@ final class StatsScreenModel {
         return months.map { StatsCalendarMonth(month: $0, sessions: sessions) }
     }
 
-    /// Stand-in rows until progression is worked out from logged sets.
-    var progressionItems: [StatsProgressionItem] {
-        #if DEBUG
-        StatsProgressionItem.samples
-        #else
-        []
-        #endif
+    /// This month's page id — where the calendar opens.
+    var currentMonthID: Date {
+        WeekCalendar.calendar.dateInterval(of: .month, for: .now)?.start ?? .now
     }
 
-    /// Stand-in minutes until cardio is summed from logged sessions.
-    let cardioWeekMinutes = 34
-    let cardioMonthMinutes = 85
+    /// Recounts everything from the logged sessions.
+    func reload() {
+        let calendar = WeekCalendar.calendar
+        let now = Date.now
+        let today = calendar.startOfDay(for: now)
+        let end = Date.distantFuture
 
-    /// Stand-in tiles until sets are counted per muscle group.
-    var balanceItems: [StatsBalanceItem] {
-        #if DEBUG
-        StatsBalanceItem.samples
-        #else
-        []
-        #endif
+        let balanceStart = calendar.date(byAdding: .day, value: -balanceDays, to: today) ?? today
+        let counts = statsStore.sessionsPerGroup(from: balanceStart, to: end)
+        loadBalance(counts)
+
+        // Every exercise ever logged, most recently trained first; the card
+        // shows six and opens the rest.
+        progressionItems = statsStore.progress(from: .distantPast, to: end)
+            .map(progressionItem)
+
+        let weekStart = WeekCalendar.startOfWeek(containing: now)
+        let monthStart = calendar.dateInterval(of: .month, for: now)?.start ?? today
+        cardioWeekMinutes = statsStore.cardioMinutes(from: weekStart, to: end)
+        cardioMonthMinutes = statsStore.cardioMinutes(from: monthStart, to: end)
     }
 
     // MARK: - Intents
@@ -72,12 +89,48 @@ final class StatsScreenModel {
     /// "See All" on the calendar — the full calendar screen isn't built yet.
     func didTapCalendarSeeAll() {}
 
-    /// "See All" on progression — the charts screen isn't built yet.
-    func didTapProgressionSeeAll() {}
+    /// "See All" on progression opens every logged exercise.
+    func didTapProgressionSeeAll() {
+        destination = .progression
+    }
 
-    /// A progression row — the exercise detail isn't built yet.
-    func didTapProgression(id: UUID) {}
+    /// A progression row opens that exercise's progression.
+    func didTapProgression(id: UUID) {
+        destination = .exerciseProgress(id)
+    }
 
     /// A balance tile — the muscle group detail isn't built yet.
     func didTapBalance(id: String) {}
+
+    // MARK: - Mapping
+
+    /// One tile per group. A group is behind when it's well under the
+    /// average group; with nothing logged, nothing is behind.
+    private func loadBalance(_ counts: [BalanceGroup: Int]) {
+        let average = Double(counts.values.reduce(0, +)) / Double(BalanceGroup.allCases.count)
+        func isBehind(_ count: Int) -> Bool {
+            average > 0 && Double(count) < average * behindShare
+        }
+        balanceItems = BalanceGroup.allCases.map { group in
+            let count = counts[group] ?? 0
+            return StatsBalanceItem(title: group.displayName, count: count, status: isBehind(count) ? .behind : .onTrack)
+        }
+
+        let furthestBehind = BalanceGroup.allCases
+            .filter { isBehind(counts[$0] ?? 0) }
+            .min { (counts[$0] ?? 0) < (counts[$1] ?? 0) }
+        suggestion = furthestBehind.map { group in
+            let count = counts[group] ?? 0
+            let sessions = count == 1 ? "session" : "sessions"
+            let usual = Int(average.rounded())
+            return StatsSuggestionItem(
+                title: "\(group.displayName) \(group.isPlural ? "are" : "is") falling behind",
+                message: "\(count) \(sessions) in the last 4 weeks, against about \(usual) for each muscle group.",
+            )
+        }
+    }
+
+    private func progressionItem(_ progress: ExerciseProgress) -> StatsProgressionItem {
+        StatsProgressionItem(progress: progress, exercise: exerciseStore.exercise(id: progress.exerciseID))
+    }
 }

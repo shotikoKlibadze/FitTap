@@ -21,6 +21,14 @@ struct WorkoutView: View {
     let isEditing: Bool
     /// "Plan" beside "Start Workout" while reading.
     let showsPlanButton: Bool
+    /// A red "Delete" after "Start Workout" while reading.
+    let showsDeleteButton: Bool
+    /// "Start Workout" while reading; off for a day already done or missed,
+    /// where Delete then takes the whole row.
+    let showsStartButton: Bool
+    /// Opened to plan a day: "Plan for Tue 15" as the one main button, in
+    /// place of Start.
+    let planDayTitle: String?
     @Binding var isPlanning: Bool
     @Binding var planDate: Date?
     let planTitle: String
@@ -48,6 +56,8 @@ struct WorkoutView: View {
     let onRemoveExercise: (UUID) -> Void
     let onTapSave: () -> Void
     let onTapStart: () -> Void
+    let onTapDelete: () -> Void
+    let onTapPlanDay: () -> Void
     let onSavePlan: () -> Void
 
     /// Pairs the read-only pieces with the controls they become.
@@ -124,14 +134,24 @@ struct WorkoutView: View {
                 }
                 // Start is the one live button: a moving red mesh. Saving is
                 // plain glass; the two crossfade when the mode flips.
-                ZStack {
-                    if isEditing {
-                        GlassPillButton(title: saveTitle, disabled: !canSave, action: onTapSave)
-                            .transition(.opacity)
-                    } else {
-                        MeshPillButton(title: "Start Workout", tint: color.color, action: onTapStart)
-                            .transition(.opacity)
+                if isEditing || showsStartButton || planDayTitle != nil {
+                    ZStack {
+                        if isEditing {
+                            GlassPillButton(title: saveTitle, disabled: !canSave, action: onTapSave)
+                                .transition(.opacity)
+                        } else if let planDayTitle {
+                            GlassPillButton(title: planDayTitle, action: onTapPlanDay)
+                                .transition(.opacity)
+                        } else {
+                            MeshPillButton(title: "Start Workout", tint: color.color, action: onTapStart)
+                                .transition(.opacity)
+                        }
                     }
+                }
+                if showsDeleteButton && !isEditing {
+                    GlassPillButton(title: "Delete", style: .destructive, action: onTapDelete)
+                        .frame(width: showsStartButton ? deleteButtonWidth : nil)
+                        .transition(.opacity)
                 }
             }
             .overlay(alignment: .bottomLeading) {
@@ -155,6 +175,8 @@ struct WorkoutView: View {
 
     /// About a third of the row, as in the design.
     private let planButtonWidth: CGFloat = 112
+    /// Just wide enough for "Delete", leaving Start the most room.
+    private let deleteButtonWidth: CGFloat = 96
 
     private var hasPlanSlot: Bool {
         showsPlanButton && !isEditing
@@ -243,17 +265,36 @@ struct WorkoutView: View {
                 VStack(spacing: 12) {
                     ForEach($exercises) { $workoutExercise in
                         if let exercise = catalog[workoutExercise.exerciseID] {
-                            ExerciseCard(
-                                exercise: exercise,
-                                workoutExercise: $workoutExercise,
-                                mode: isEditing ? .edit : .view,
-                                onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
-                                onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
-                                onTapDuration: { onTapDuration(workoutExercise.id) },
-                                onTapSpeed: { onTapSpeed(workoutExercise.id) },
-                                onTapSuggestion: {},
-                                onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
-                            )
+                            // A logged rating hangs under its card while
+                            // reading, as it did during the workout; it can't
+                            // be changed here.
+                            VStack(spacing: 0) {
+                                ExerciseCard(
+                                    exercise: exercise,
+                                    workoutExercise: $workoutExercise,
+                                    mode: isEditing ? .edit : .view,
+                                    onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
+                                    onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
+                                    onTapDuration: { onTapDuration(workoutExercise.id) },
+                                    onTapSpeed: { onTapSpeed(workoutExercise.id) },
+                                    onTapSuggestion: {},
+                                    onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
+                                )
+                                .zIndex(1)
+                                // Only for an exercise with every set completed: a
+                                // failed set needs no rating.
+                                if !isEditing, workoutExercise.allSetsCompleted, let effort = workoutExercise.effort {
+                                    RatingStrip(
+                                        prompt: "How did it feel?",
+                                        options: Effort.ratingOptions,
+                                        selectedID: .constant(effort.rawValue),
+                                    )
+                                    .allowsHitTesting(false)
+                                    .padding(.horizontal, RatingStrip.sideInset)
+                                    .padding(.top, -RatingStrip.cardOverlap)
+                                    .transition(.opacity)
+                                }
+                            }
                             .transition(.opacity)
                         }
                     }
@@ -297,6 +338,9 @@ private struct WorkoutViewPreviewHost: View {
             WorkoutView(
                 isEditing: modeIndex == 1,
                 showsPlanButton: true,
+                showsDeleteButton: true,
+                showsStartButton: true,
+                planDayTitle: nil,
                 isPlanning: $isPlanning,
                 planDate: $planDate,
                 planTitle: "Plan \(name)",
@@ -326,6 +370,8 @@ private struct WorkoutViewPreviewHost: View {
                 onRemoveExercise: { id in exercises.removeAll { $0.id == id } },
                 onTapSave: { modeIndex = 0 },
                 onTapStart: {},
+                onTapDelete: {},
+                onTapPlanDay: {},
                 onSavePlan: { isPlanning = false },
             )
             .safeAreaInset(edge: .top) {

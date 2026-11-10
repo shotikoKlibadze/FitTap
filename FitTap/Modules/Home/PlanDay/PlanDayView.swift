@@ -2,7 +2,8 @@ import DesignSystem
 import SwiftUI
 
 /// Content of the plan-a-day sheet: a title naming the day, then "New
-/// workout" and every workout as a pickable row, scrolling inside the sheet.
+/// workout" and every workout as a row that opens it, scrolling inside the
+/// sheet.
 ///
 /// The title floats over the list: rows scroll up under it and stay faintly
 /// visible through the fade behind it, instead of being cut off at a hard
@@ -10,8 +11,7 @@ import SwiftUI
 struct PlanDayView: View {
     let title: String
     let items: [PlanDayItem]
-    let pickedID: UUID?
-    let onPick: (UUID) -> Void
+    let onOpenWorkout: (UUID) -> Void
     let onTapNewWorkout: () -> Void
 
     /// How far the fade reaches past the subtitle, so a row dissolves as it
@@ -28,9 +28,8 @@ struct PlanDayView: View {
                         subtitle: item.subtitle,
                         icon: Image(systemName: item.iconName),
                         color: item.color,
-                        isSelected: item.id == pickedID,
                     ) {
-                        onPick(item.id)
+                        onOpenWorkout(item.id)
                     }
                 }
             }
@@ -58,7 +57,7 @@ struct PlanDayView: View {
                 .font(FTFonts.title3Semibold)
                 .foregroundStyle(FTColors.textPrimary)
                 .lineLimit(1)
-            Text("Pick one of your workouts.")
+            Text("Open a workout to plan it.")
                 .font(FTFonts.subheadline)
                 .foregroundStyle(FTColors.textSecondary)
         }
@@ -69,15 +68,14 @@ struct PlanDayView: View {
 
 #if DEBUG
 private struct PlanDayViewPreviewHost: View {
-    @State private var pickedID: UUID?
+    @State private var openedID: UUID?
     @State private var newWorkoutTaps = 0
 
     var body: some View {
         PlanDayView(
             title: "Plan Workout for Today",
             items: PlanDayItem.samples,
-            pickedID: pickedID,
-            onPick: { pickedID = $0 },
+            onOpenWorkout: { openedID = $0 },
             onTapNewWorkout: { newWorkoutTaps += 1 },
         )
         .padding(.top, 20)

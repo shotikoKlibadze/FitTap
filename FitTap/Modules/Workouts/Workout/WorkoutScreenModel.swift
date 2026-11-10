@@ -6,6 +6,10 @@ import Foundation
 /// `didTapEdit()` switches it to editing in place; a new one opens editing.
 /// While editing, the fields below are a draft: saving writes them to the
 /// store, cancelling reloads them from it.
+///
+/// Opened from a session on Home — planned, missed or done — it shows and
+/// edits that session's workout: saving changes only that day, never the
+/// general workout. A done session shows what was logged, ratings included.
 @MainActor
 @Observable
 final class WorkoutScreenModel {
@@ -59,8 +63,27 @@ final class WorkoutScreenModel {
 
     var isNew: Bool { workoutID == nil }
 
+    /// What the screen shows and edits: the planned session's workout when
+    /// opened from one, otherwise the general workout.
     private var storedWorkout: WorkoutTemplate? {
-        workoutID.flatMap { workoutStore.template(id: $0) }
+        if let openedSession {
+            return openedSession.workout
+        }
+        return workoutID.flatMap { workoutStore.template(id: $0) }
+    }
+
+    /// The session this was opened from on Home, whatever its state.
+    private var openedSession: WorkoutSession? {
+        switch source {
+        case .plannedSession(let id), .finishedSession(let id): sessionStore.session(id: id)
+        case .library, .planning: nil
+        }
+    }
+
+    /// The session this was opened from, while it's still to come (or missed).
+    private var plannedSession: WorkoutSession? {
+        guard case .plannedSession(let id) = source else { return nil }
+        return sessionStore.session(id: id)
     }
 
     /// Catalog lookup for the cards — exercises are referenced by id.
@@ -96,7 +119,7 @@ final class WorkoutScreenModel {
             return [
                 exerciseStat,
                 WorkoutSummaryStrip.Stat(value: "\(workout.setCount)", label: "sets"),
-                WorkoutSummaryStrip.Stat(value: "~\(workout.estimatedMinutes)", label: "minutes"),
+                WorkoutSummaryStrip.Stat(value: "~\(strengthMinutes(workout))", label: "minutes"),
             ]
         case .cardio:
             var stats = [exerciseStat, WorkoutSummaryStrip.Stat(value: "\(workout.estimatedMinutes)", label: "minutes")]
@@ -108,16 +131,50 @@ final class WorkoutScreenModel {
         }
     }
 
+    /// How long the user's sessions of it usually take, else the per-set guess.
+    private func strengthMinutes(_ workout: WorkoutTemplate) -> Int {
+        sessionStore.sessions.typicalMinutes(ofWorkout: workout.id) ?? workout.estimatedMinutes
+    }
+
+    /// Start only where there's still something to do: the workout on its
+    /// own, or a session still planned. A done or missed day has none.
+    var showsStartButton: Bool {
+        if case .planning = source { return false }
+        guard let openedSession else { return true }
+        return openedSession.status == .planned
+    }
+
+    /// Opened from Home's plan sheet: the one main button, "Plan for Tue 15"
+    /// (or "Plan for Today"). Nil otherwise.
+    var planDayTitle: String? {
+        guard case .planning(let day) = source else { return nil }
+        if calendar.isDateInToday(day) { return "Plan for Today" }
+        return "Plan for \(day.formatted(.dateTime.weekday(.abbreviated).day()))"
+    }
+
+    /// Puts the workout on the plan sheet's day; it follows later edits to
+    /// the workout until it's started. The Screen then goes back to Home.
+    func planForDay() {
+        guard case .planning(let day) = source, let storedWorkout else { return }
+        sessionStore.add(WorkoutSession(workout: storedWorkout, scheduledFor: day, followsWorkout: true))
+    }
+
     /// Only the workout on its own can be planned; a session already has a day.
     var showsPlanButton: Bool {
         source == .library
     }
 
+    /// Delete sits beside Start wherever Start is: on any saved workout or
+    /// session, never while creating.
+    var showsDeleteButton: Bool {
+        if case .planning = source { return false }
+        return !isNew
+    }
+
     /// The day of the session this was opened from, while it's still to come
     /// (or missed). Editing then asks first.
     var plannedDate: Date? {
-        guard case .plannedSession(let date) = source else { return nil }
-        return date
+        plannedSession?.scheduledFor
     }
 
     /// "Planned for Thu, Sep 10".
@@ -194,31 +251,37 @@ final class WorkoutScreenModel {
     }
 
     /// Writes the draft to the store. An existing workout goes back to
-    /// reading; a new one is done — its screen closes.
+    /// reading; a new one is done — its screen closes. Opened from a planned
+    /// session, only that session changes.
     func save() {
         if isNew {
             workoutStore.add(workout)
+            return
+        }
+        if let openedSession {
+            sessionStore.updateWorkout(ofSession: openedSession.id, to: workout)
         } else {
             workoutStore.update(workout)
-            isEditing = false
         }
+        // Reload what was stored: a session's copy gets fresh entry ids.
+        if let storedWorkout {
+            load(storedWorkout)
+        }
+        isEditing = false
     }
 
     /// Opens the workout as a session. Opened from a planned session, that one
     /// starts; otherwise today's unfinished session of this workout carries on,
-    /// or a new one begins.
+    /// or a new one begins. Starting freezes the session's copy of the workout.
     func didTapStartWorkout() {
         guard let storedWorkout else { return }
         let day = plannedDate ?? today
-        let existing = sessionStore.sessions.first {
+        let existing = plannedSession ?? sessionStore.sessions.first {
             $0.workout.id == storedWorkout.id && $0.endedAt == nil
                 && calendar.isDate($0.scheduledFor, inSameDayAs: day)
         }
-        if var session = existing {
-            if session.startedAt == nil {
-                session.startedAt = .now
-                sessionStore.update(session)
-            }
+        if let session = existing {
+            sessionStore.start(id: session.id)
             destination = .session(session.id, startedFresh: false)
         } else {
             let session = WorkoutSession(workout: storedWorkout, scheduledFor: .now, startedAt: .now)
@@ -236,12 +299,29 @@ final class WorkoutScreenModel {
         "Plan \(name)"
     }
 
-    /// Puts the workout on the picked day — Home shows it from then on.
+    /// Puts the workout on the picked day — Home shows it from then on, and
+    /// it follows later edits to the workout until it's started.
     func savePlan() {
         guard let planDate, let storedWorkout else { return }
-        sessionStore.add(WorkoutSession(workout: storedWorkout, scheduledFor: planDate))
+        sessionStore.add(WorkoutSession(workout: storedWorkout, scheduledFor: planDate, followsWorkout: true))
         isPlanning = false
         self.planDate = nil
+    }
+
+    /// Deletes straight away, no confirmation; the Screen closes afterwards.
+    /// Opened from Home, only that day's session goes — planned or logged —
+    /// and the workout stays. Opened from the Workouts tab, the workout goes;
+    /// its planned days keep their own copy.
+    func delete() {
+        switch source {
+        case .plannedSession(let id), .finishedSession(let id):
+            sessionStore.remove(id: id)
+        case .library:
+            guard let workoutID else { return }
+            workoutStore.remove(id: workoutID)
+        case .planning:
+            break
+        }
     }
 
     func didTapChangeDate() {
@@ -256,8 +336,8 @@ final class WorkoutScreenModel {
     }
 
     /// Each picked exercise arrives with one starter set: 10 reps, 10 kg
-    /// (no weight for bodyweight moves). Cardio has no sets — it arrives as
-    /// 30 minutes with no speed yet.
+    /// (no weight for bodyweight moves), or a one-minute hold. Cardio has no
+    /// sets — it arrives as 30 minutes with no speed yet.
     func addExercises(_ ids: [UUID]) {
         let start = exercises.count
         let added = ids.enumerated().compactMap { offset, id -> WorkoutExercise? in
@@ -267,6 +347,13 @@ final class WorkoutScreenModel {
                     exerciseID: id,
                     order: start + offset,
                     cardio: CardioEntry(duration: 30 * 60),
+                )
+            }
+            if exercise.kind == .hold {
+                return WorkoutExercise(
+                    exerciseID: id,
+                    order: start + offset,
+                    sets: [SetEntry(order: 0, reps: 0, duration: 60)],
                 )
             }
             let weight: Double? = exercise.kind == .weightlifting ? 10 : nil

@@ -12,6 +12,9 @@ struct CardioEntry: Hashable, Codable, Sendable {
     /// `HKWorkoutActivity` this entry becomes on HealthKit sync.
     /// See Knowledge/iOSHealthKit/README.md §2.
     var startedAt: Date?
+    /// Average heart rate in beats per minute, when a watch recorded it.
+    /// Shown one level down on a run; never entered by hand.
+    var averageHeartRate: Double?
 
     init(
         duration: TimeInterval,
@@ -19,11 +22,13 @@ struct CardioEntry: Hashable, Codable, Sendable {
         distanceMeters: Double? = nil,
         count: Int? = nil,
         startedAt: Date? = nil,
+        averageHeartRate: Double? = nil,
     ) {
         self.duration = duration
         self.speedKmh = speedKmh
         self.distanceMeters = distanceMeters
         self.count = count
         self.startedAt = startedAt
+        self.averageHeartRate = averageHeartRate
     }
 }

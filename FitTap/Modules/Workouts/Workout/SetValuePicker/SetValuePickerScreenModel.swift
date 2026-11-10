@@ -20,6 +20,7 @@ final class SetValuePickerScreenModel {
         case .weight: context.exerciseKind == .bodyweight ? "Select added weight" : "Select weight"
         case .duration: "Select duration"
         case .speed: "Speed"
+        case .holdTime: "Select time"
         }
     }
 
@@ -29,7 +30,7 @@ final class SetValuePickerScreenModel {
         let name = context.exerciseName
         let set = context.setNumber.map { " — set \($0)" } ?? ""
         switch context.field {
-        case .reps:
+        case .reps, .holdTime:
             return name + set
         case .weight:
             switch context.loadMode {
@@ -51,6 +52,7 @@ final class SetValuePickerScreenModel {
         case .weight: Array(stride(from: 2.5, through: 50, by: 2.5))
         case .duration: Array(stride(from: 5, through: 90, by: 5))
         case .speed: []
+        case .holdTime: [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240]
         }
     }
 
@@ -60,6 +62,7 @@ final class SetValuePickerScreenModel {
         case .weight: context.exerciseKind == .bodyweight ? "Custom Added Weight" : "Custom Weight"
         case .duration: "Custom Duration"
         case .speed: "Speed"
+        case .holdTime: "Custom Time"
         }
     }
 

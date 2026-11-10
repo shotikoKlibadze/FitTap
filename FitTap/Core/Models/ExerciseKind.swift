@@ -11,4 +11,8 @@ enum ExerciseKind: String, Codable, CaseIterable, Sendable {
     case bodyweight
     /// One entry per exercise: duration required, distance and count optional.
     case cardio
+    /// Sets of a timed hold (wall sit, plank): each set records how long it
+    /// was held, with no reps or weight. Counts toward its muscle like any
+    /// set, never toward cardio minutes.
+    case hold
 }

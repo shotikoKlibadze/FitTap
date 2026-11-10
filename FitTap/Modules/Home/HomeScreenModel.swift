@@ -14,19 +14,25 @@ final class HomeScreenModel {
     /// The day whose card shows under the strip; today to begin with. Only a
     /// tap changes it — paging to another week leaves it where it was.
     var selectedDay: Date?
+    /// Bumped when "Today" is tapped with today already selected: the strip
+    /// flashes its ring to say "you're here".
+    private(set) var todayFlash = 0
 
     @ObservationIgnored
     @Injected(\.workoutSessionStore) private var sessionStore
 
     private let profile = ProfileData.profile
     private let thisWeekStart: Date
-    /// Last week, this week, next week.
+    /// Twelve weeks back, this week, three weeks ahead — about three months
+    /// to look back on and enough room to plan, oldest first.
     private let weekStarts: [Date]
+    private static let weeksBack = 12
+    private static let weeksAhead = 3
 
     init() {
         let thisWeekStart = WeekCalendar.startOfWeek(containing: .now)
         self.thisWeekStart = thisWeekStart
-        weekStarts = (-1...1).map { WeekCalendar.calendar.date(byAdding: .day, value: $0 * 7, to: thisWeekStart)! }
+        weekStarts = (-Self.weeksBack...Self.weeksAhead).map { WeekCalendar.calendar.date(byAdding: .day, value: $0 * 7, to: thisWeekStart)! }
         currentWeek = thisWeekStart
         selectedDay = WeekCalendar.calendar.startOfDay(for: .now)
     }
@@ -84,10 +90,11 @@ final class HomeScreenModel {
     /// "Last Week" / "This Week" / "Next Week", or the dates for any other.
     var weekTitle: String {
         guard let currentWeek else { return "" }
-        switch weekStarts.firstIndex(of: currentWeek) {
-        case 0: return "Last Week"
-        case 1: return "This Week"
-        case 2: return "Next Week"
+        let offset = calendar.dateComponents([.weekOfYear], from: thisWeekStart, to: currentWeek).weekOfYear
+        switch offset {
+        case -1: return "Last Week"
+        case 0: return "This Week"
+        case 1: return "Next Week"
         default: return rangeText(forWeekStarting: currentWeek)
         }
     }
@@ -101,7 +108,7 @@ final class HomeScreenModel {
 
     var dayItem: SessionCardItem? {
         guard let selectedDay else { return nil }
-        return session(on: selectedDay).map { SessionCardItem(session: $0) }
+        return session(on: selectedDay).map { cardItem($0) }
     }
 
     /// What the add card offers on a day with nothing on it: a past day can
@@ -125,10 +132,21 @@ final class HomeScreenModel {
         return sessionStore.sessions
             .filter { $0.scheduledFor >= currentWeek && $0.scheduledFor < end }
             .sorted { $0.scheduledFor < $1.scheduledFor }
-            .map { SessionCardItem(session: $0) }
+            .map { cardItem($0) }
     }
 
     // MARK: - Intents
+
+    /// "Today" beside the week title: back to this week with today selected.
+    /// Already there, the ring just flashes.
+    func didTapToday() {
+        if currentWeek == thisWeekStart, selectedDay == today {
+            todayFlash += 1
+            return
+        }
+        currentWeek = thisWeekStart
+        selectedDay = today
+    }
 
     /// The empty day's add card: a past day opens logging, today and later
     /// open the plan sheet.
@@ -141,9 +159,12 @@ final class HomeScreenModel {
         }
     }
 
-    /// The pick is already saved; this just closes the sheet.
-    func didFinishPlanning() {
+    /// A workout tapped in the plan sheet: the sheet closes and the workout
+    /// opens, offering "Plan for …" that day.
+    func didOpenWorkoutWhilePlanning(id: UUID) {
+        guard let day = planningDay else { return }
         planningDay = nil
+        destination = .workout(id, .planning(day))
     }
 
     func didTapNewWorkoutWhilePlanning() {
@@ -156,13 +177,18 @@ final class HomeScreenModel {
     func didTapSession(id: UUID) {
         guard let session = sessionStore.sessions.first(where: { $0.id == id }) else { return }
         let source: WorkoutScreenSource = switch session.status {
-        case .planned, .missed: .plannedSession(session.scheduledFor)
-        case .done: .finishedSession
+        case .planned, .missed: .plannedSession(session.id)
+        case .done: .finishedSession(session.id)
         }
         destination = .workout(session.workout.id, source)
     }
 
     // MARK: - Helpers
+
+    /// The card for a session, its length taken from the user's own history.
+    private func cardItem(_ session: WorkoutSession) -> SessionCardItem {
+        SessionCardItem(session: session, typicalMinutes: sessionStore.sessions.typicalMinutes(ofWorkout: session.workout.id))
+    }
 
     private func session(on day: Date) -> WorkoutSession? {
         sessionStore.sessions(on: day).first

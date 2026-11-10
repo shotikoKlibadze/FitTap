@@ -18,6 +18,8 @@ struct HomeScreen: View {
             dayAddTitle: screenModel.dayAddTitle,
             weekListTitle: screenModel.weekListTitle,
             weekItems: screenModel.weekItems,
+            todayFlash: screenModel.todayFlash,
+            onTapToday: screenModel.didTapToday,
             onTapPlanWorkout: screenModel.didTapPlanWorkout,
             onTapSession: screenModel.didTapSession,
         )
@@ -25,7 +27,7 @@ struct HomeScreen: View {
         .bottomSheet(item: $screenModel.planningDay, height: { _ in PlanDayMetrics.sheetHeight }) { day in
             PlanDayScreen(
                 day: day,
-                onDone: screenModel.didFinishPlanning,
+                onOpenWorkout: screenModel.didOpenWorkoutWhilePlanning,
                 onTapNewWorkout: screenModel.didTapNewWorkoutWhilePlanning,
             )
         }

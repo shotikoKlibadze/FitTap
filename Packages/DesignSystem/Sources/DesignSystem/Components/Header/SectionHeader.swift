@@ -2,13 +2,16 @@ import SwiftUI
 
 /// The one header for every section on every screen — "Progression",
 /// "Ongoing Week", "Type", "8 Exercises" — bold in the text colour, with
-/// "See All" at the trailing edge when the section opens into more.
+/// a text button at the trailing edge when the section has one: "See All"
+/// by default, or its own word ("Today").
 public struct SectionHeader: View {
     let title: String
+    let actionTitle: String
     let seeAllAction: (() -> Void)?
 
-    public init(title: String, seeAllAction: (() -> Void)? = nil) {
+    public init(title: String, actionTitle: String = "See All", seeAllAction: (() -> Void)? = nil) {
         self.title = title
+        self.actionTitle = actionTitle
         self.seeAllAction = seeAllAction
     }
 
@@ -20,7 +23,7 @@ public struct SectionHeader: View {
                 .lineLimit(1)
             Spacer(minLength: 8)
             if let seeAllAction {
-                TextButton(title: "See All", action: seeAllAction)
+                TextButton(title: actionTitle, action: seeAllAction)
             }
         }
     }
@@ -34,8 +37,9 @@ private struct SectionHeaderPreviewHost: View {
         VStack(alignment: .leading, spacing: 16) {
             SectionHeader(title: "Ongoing Week")
             SectionHeader(title: "Progression") { taps += 1 }
+            SectionHeader(title: "This Week", actionTitle: "Today") { taps += 1 }
             SectionHeader(title: "Muscle Groups")
-            Text("\(taps) See All taps")
+            Text("\(taps) taps")
                 .font(FTFonts.footnote)
                 .foregroundStyle(FTColors.textSecondary)
         }

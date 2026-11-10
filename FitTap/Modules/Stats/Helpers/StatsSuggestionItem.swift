@@ -1,8 +1,8 @@
 import Foundation
 
 /// One suggestion on the Stats tab, ready for `SuggestionCard`: a title and
-/// the sentence under it. The coach that writes these isn't built yet, so
-/// the screen model hands out the sample.
+/// the sentence under it. For now the screen model writes one from the
+/// balance counts; the coach takes over later.
 struct StatsSuggestionItem: Identifiable, Hashable {
     let id: UUID
     let title: String
@@ -19,7 +19,7 @@ struct StatsSuggestionItem: Identifiable, Hashable {
 extension StatsSuggestionItem {
     static let sample = StatsSuggestionItem(
         title: "Legs are falling behind",
-        message: "1 session in 4 weeks against 7 upper-body sessions. Your usual is 10 sets a week.",
+        message: "1 session in the last 4 weeks, against about 5 for each muscle group.",
     )
 }
 #endif

@@ -146,6 +146,8 @@ header { display: grid; gap: 16px; }
 .checklist li.next::before { color: var(--manager); }
 .checklist .tag { font: 700 0.72rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .checklist .next .tag { color: var(--manager); }
+.checklist li.done::before { color: var(--store); }
+.checklist .done .tag { color: var(--store); }
 
 .parked { background: var(--park-soft); border-radius: 14px; padding: 18px 20px; display: grid; gap: 8px; }
 .parked h3 { color: var(--park); }
@@ -170,10 +172,10 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
     </div>
     <div class="eyebrow">FitTap · how saving works</div>
     <h1>SwiftData Rules</h1>
-    <p class="lead">How FitTap will keep your workouts on the phone: who is allowed to touch the database, how a workout session lives, and why each choice was made. Plain English, one page.</p>
+    <p class="lead">How FitTap keeps your workouts on the phone: who is allowed to touch the database, how a workout session lives, and why each choice was made. Plain English, one page.</p>
     <div class="status">
-      <span class="pill plan">Status: planned, nothing built yet</span>
-      <span class="pill">Agreed 29 Oct 2026</span>
+      <span class="pill plan">Status: saving and the session rules built; Home, Workouts and Stats read saved data</span>
+      <span class="pill">Built 3 Nov 2026</span>
       <span class="pill">iOS 27</span>
     </div>
   </header>
@@ -189,7 +191,7 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
       <div class="arrow"><b>↓</b> taps go down, values come up</div>
       <div class="layer screen"><div class="name">Screen models</div><div class="what">The brain of one screen. Asks a store for data, decides what happens on a tap.</div></div>
       <div class="arrow"><b>↓</b></div>
-      <div class="layer store"><div class="name">Stores</div><div class="what">Shared, always-up-to-date lists: exercises, workouts, sessions, profile. Every screen reads the same store, so two screens never disagree.</div></div>
+      <div class="layer store"><div class="name">Stores</div><div class="what">Shared, always-up-to-date lists: exercises, workouts, sessions. Every screen reads the same store, so two screens never disagree. The Stats store counts straight from the database instead of keeping a list.</div></div>
       <div class="arrow"><b>↓</b> the only floor that calls the manager</div>
       <div class="layer manager"><div class="name">SwiftDataManager</div><div class="what">The one key holder. Translates between the app's models and saved entities, enforces the session rules, saves after every change.</div></div>
       <div class="arrow"><b>↓</b></div>
@@ -228,7 +230,7 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
   <section>
     <div class="eyebrow">How a workout session lives</div>
     <h2>Planned sessions follow, started sessions freeze</h2>
-    <p>A real week with your Push Day (bench, shoulder press, push-ups):</p>
+    <p>Built on 3 Nov. A real week with your Push Day (bench, shoulder press, push-ups):</p>
 
     <div class="timeline">
       <div class="step"><div class="day">Monday</div><div><span class="state follow">follows Push Day</span><p>You plan Push Day for Friday. Friday holds no copy yet. It simply points at Push Day.</p></div></div>
@@ -261,14 +263,27 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
     <p class="muted">Deleting a session deletes its entries and sets with it. Saving compares sets by id: changed ones update, new ones are added, removed ones go. Nothing is thrown away and rebuilt, so history keeps its identity.</p>
   </section>
 
+  <!-- 4b. How Stats reads -->
+  <section>
+    <div class="eyebrow">How the Stats tab gets its numbers</div>
+    <h2>Counted fresh, never stored</h2>
+    <p>There are no saved totals. Each time a session is saved, the Stats tab asks the database a few quick questions and counts the answers. Even a keen lifter logs only a few thousand sets a year, so this stays instant, and there are no totals to keep in sync when you edit or fail a set.</p>
+    <div class="facts">
+      <div class="fact"><h3>Balance</h3><p>Every set checked off in the last 4 weeks, counted by its exercise's main muscle. Biceps and triceps count as Arms; full body isn't counted.</p><p class="why">A group well under the average (less than half) shows as behind, and the furthest-behind one becomes the suggestion card.</p></div>
+      <div class="fact"><h3>Progression</h3><p>For each exercise trained in the last 12 weeks: the best set of its latest session against the best set of the session before. Heavier wins; at the same weight, more reps wins.</p><p class="why">Failed sets don't count as a best. The six most recently trained exercises show.</p></div>
+      <div class="fact"><h3>Cardio</h3><p>Minutes from cardio entries in sessions that ended this week, and this month.</p><p class="why">Weeks run Monday to Sunday, like everywhere else in the app.</p></div>
+      <div class="fact"><h3>Calendar</h3><p>Every session by day, from the session store Home also uses.</p><p class="why">Done, planned and missed are worked out from the dates, never stored.</p></div>
+    </div>
+  </section>
+
   <!-- 5. Other decisions -->
   <section>
     <div class="eyebrow">The other decisions</div>
     <h2>Smaller choices, and the reason for each</h2>
     <div class="facts">
-      <div class="fact"><h3>Built-in exercises get fixed ids</h3><p>All 46 are copied into the database on first launch, each with an id that never changes.</p><p class="why">The same Bench Press on every phone; an app update can add new ones; a future online catalog (Supabase) can reuse the ids.</p></div>
-      <div class="fact"><h3>Ready for iCloud, sync off</h3><p>Every saved value has a default, every link between entities is optional, nothing is "must be unique".</p><p class="why">iCloud sync and the Watch are planned. Building it this way now means turning sync on later needs no data conversion.</p></div>
-      <div class="fact"><h3>Profile kept simple</h3><p>One saved row: name, age, current weight.</p><p class="why">Simple first. Home's header shows the weight without "this month's change" until weight history exists.</p></div>
+      <div class="fact"><h3>Built-in exercises get fixed ids</h3><p>All 51 are copied into the database at launch, each with an id that never changes. A rename in the code reaches the database on the next launch.</p><p class="why">The same Bench Press on every phone; an app update can add new ones; a future online catalog (Supabase) can reuse the ids.</p></div>
+      <div class="fact"><h3>Ready for iCloud, sync off</h3><p>Every saved value has a default, every link between entities is optional and points both ways, nothing is "must be unique". Apple's iCloud rules were checked on 3 Nov.</p><p class="why">iCloud sync and the Watch are planned. Building it this way now means turning sync on later needs no data conversion.</p></div>
+      <div class="fact"><h3>Profile kept simple (not built yet)</h3><p>One saved row: name, age, current weight. Until then Home still shows the fixed sample profile.</p><p class="why">Simple first. Home's header shows the weight without "this month's change" until weight history exists.</p></div>
       <div class="fact"><h3>Version 1 until release</h3><p>The database layout is "version 1" and can change freely until real data exists (first release, TestFlight, or your own real workouts).</p><p class="why">After that, every change becomes a planned upgrade step, so nobody's data breaks.</p></div>
       <div class="fact"><h3>Saved right away</h3><p>The manager saves after every change instead of waiting for autosave.</p><p class="why">Autosave waits a few seconds and doesn't run when Xcode stops the app. A logged set should never be lost.</p></div>
       <div class="fact"><h3>Links by id, not by connection</h3><p>A set points at its exercise, and a session at its workout, by a plain id.</p><p class="why">A database connection would be wiped when the exercise or workout is deleted, and history would lose its grouping.</p></div>
@@ -281,11 +296,12 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
     <h2>Folder map</h2>
     <div class="folders">
       <table>
-        <tr><td><span class="dot" style="background:var(--manager)"></span><code>Core/Persistence/</code></td><td>The manager, the schema version, the upgrade plan, and the translation code.</td></tr>
-        <tr><td><span class="dot" style="background:var(--data)"></span><code>Core/Persistence/Entities/</code></td><td>The six saved entities, one per file.</td></tr>
-        <tr><td><span class="dot" style="background:var(--store)"></span><code>Core/Stores/</code></td><td>The stores. They stay where they are and switch from mock lists to the manager.</td></tr>
-        <tr><td><span class="dot" style="background:var(--store)"></span><code>Core/Models/</code></td><td>The local models (structs). Unchanged.</td></tr>
-        <tr><td><span class="dot" style="background:var(--muted)"></span><code>Core/Data/</code></td><td>Today's mock data and the built-in exercise list (which gets the fixed ids).</td></tr>
+        <tr><td><span class="dot" style="background:var(--manager)"></span><code>Core/Persistence/</code></td><td>The manager (<code>SwiftDataManager</code>), schema version 1 and the empty upgrade plan.</td></tr>
+        <tr><td><span class="dot" style="background:var(--data)"></span><code>Core/Persistence/Entities/</code></td><td>The five saved entities, one per file: exercise, workout, session, exercise entry, set. Profile comes later.</td></tr>
+        <tr><td><span class="dot" style="background:var(--manager)"></span><code>Core/Persistence/Mapping/</code></td><td>The translation between each entity and its struct, including the compare-by-id saving of entries and sets.</td></tr>
+        <tr><td><span class="dot" style="background:var(--store)"></span><code>Core/Stores/</code></td><td>The exercise, workout and session stores, now loading from and saving through the manager, plus the new Stats store.</td></tr>
+        <tr><td><span class="dot" style="background:var(--store)"></span><code>Core/Models/</code></td><td>The local models (structs), plus the small result types Stats reads: logged set, logged cardio, exercise progress, balance group.</td></tr>
+        <tr><td><span class="dot" style="background:var(--muted)"></span><code>Core/Data/</code></td><td>The built-in exercise list (fixed ids, copied in at launch) and the sample data previews still use.</td></tr>
         <tr><td><span class="dot" style="background:var(--muted)"></span><code>Planning/SwiftDataPlanning.md</code></td><td>The detailed plan this page summarises.</td></tr>
         <tr><td><span class="dot" style="background:var(--muted)"></span><code>Knowledge/SwiftData/</code></td><td>Apple's facts from eight WWDC sessions, behind every choice here.</td></tr>
       </table>
@@ -298,17 +314,18 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
     <h2>Build order</h2>
     <p>Each step is finished, compiles, and is staged before the next one starts. You check how it looks and behaves on the phone.</p>
     <ol class="checklist">
-      <li class="next"><span>Confirm Apple's iCloud rules, and decide the mock data question below.</span><span class="tag">next</span></li>
-      <li><span>Give the 46 built-in exercises their fixed ids.</span><span class="tag">to do</span></li>
-      <li><span>Create the six entities, version 1, and an empty upgrade plan.</span><span class="tag">to do</span></li>
-      <li><span>Write the translation between local models and entities.</span><span class="tag">to do</span></li>
-      <li><span>Build the manager and register it.</span><span class="tag">to do</span></li>
-      <li><span>Move the exercise store onto the manager.</span><span class="tag">to do</span></li>
-      <li><span>Move the workout store onto the manager.</span><span class="tag">to do</span></li>
-      <li><span>Move the session store onto the manager. Logged sets save instantly.</span><span class="tag">to do</span></li>
-      <li><span>Edit from Home changes only that day's session (today it changes the general workout).</span><span class="tag">to do</span></li>
-      <li><span>Start freezes the session.</span><span class="tag">to do</span></li>
-      <li><span>Profile comes from the database; header shows weight only.</span><span class="tag">to do</span></li>
+      <li class="done"><span>Confirm Apple's iCloud rules.</span><span class="tag">done</span></li>
+      <li class="done"><span>Give the 46 built-in exercises their fixed ids.</span><span class="tag">done</span></li>
+      <li class="done"><span>Create the entities, version 1, and an empty upgrade plan.</span><span class="tag">done</span></li>
+      <li class="done"><span>Write the translation between local models and entities.</span><span class="tag">done</span></li>
+      <li class="done"><span>Build the manager and register it.</span><span class="tag">done</span></li>
+      <li class="done"><span>Move the exercise store onto the manager.</span><span class="tag">done</span></li>
+      <li class="done"><span>Move the workout store onto the manager.</span><span class="tag">done</span></li>
+      <li class="done"><span>Move the session store onto the manager. Logged sets save instantly.</span><span class="tag">done</span></li>
+      <li class="done"><span>Stats store: balance, progression and cardio from saved sets.</span><span class="tag">done</span></li>
+      <li class="done"><span>Edit from Home changes only that day's session, and planned days follow their workout.</span><span class="tag">done</span></li>
+      <li class="done"><span>Start freezes the session.</span><span class="tag">done</span></li>
+      <li class="next"><span>Profile comes from the database; header shows weight only.</span><span class="tag">next</span></li>
       <li><span>Mock data, once decided.</span><span class="tag">to do</span></li>
     </ol>
   </section>
@@ -316,15 +333,15 @@ footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--lin
   <!-- 8. Parked -->
   <section>
     <div class="parked">
-      <div class="eyebrow">Parked · decide before building</div>
+      <div class="eyebrow">Parked again on 3 Nov</div>
       <h3>Mock data</h3>
-      <p>The proposal: test builds fill the real database once with three weeks of sample sessions; release builds only add the built-in exercises; previews keep using their sample structs; and a test-only "reset data" button refills everything around today's date (because sample dates go stale after a week).</p>
+      <p>For now the app starts empty except for the built-in exercises. The proposal on the table: test builds fill the real database once with three weeks of sample sessions; release builds only add the built-in exercises; previews keep using their sample structs; and a test-only "reset data" button refills everything around today's date (because sample dates go stale after a week).</p>
     </div>
   </section>
 
   <footer>
     <span>Part of FitTap's plain-English guides, listed in <code>Guides/README.md</code>. Updated whenever the structure changes.</span>
-    <span>Last updated 29 October 2026.</span>
+    <span>Last updated 3 November 2026.</span>
   </footer>
 
 </div>

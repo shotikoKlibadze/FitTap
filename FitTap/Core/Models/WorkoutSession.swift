@@ -1,8 +1,12 @@
 import Foundation
 
-/// A workout with a date: planned for a day, done, or missed. Carries a
-/// snapshot of the workout as scheduled — logging edits this copy, so later
-/// template changes never rewrite history.
+/// A workout with a date: planned for a day, done, or missed.
+///
+/// While it only sits on the plan it *follows* its workout: `workout` is
+/// whatever the general workout looks like now, so editing Push Day on
+/// Wednesday reaches Friday. Starting it, or editing it from Home, gives it
+/// its own copy for good — logging edits that copy, so later changes to the
+/// workout never rewrite history.
 struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
     let id: UUID
     var workout: WorkoutTemplate
@@ -16,6 +20,9 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
     /// to read HR, calories and zones back; sets are never reconstructed from
     /// HealthKit. See Knowledge/iOSHealthKit/README.md §2.
     var healthKitWorkoutID: UUID?
+    /// True while it follows its workout's later edits; false once it has
+    /// its own copy. Only a session not yet started can follow.
+    var followsWorkout: Bool
 
     init(
         id: UUID = UUID(),
@@ -25,6 +32,7 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
         endedAt: Date? = nil,
         notes: String? = nil,
         healthKitWorkoutID: UUID? = nil,
+        followsWorkout: Bool = false,
     ) {
         self.id = id
         self.workout = workout
@@ -33,6 +41,7 @@ struct WorkoutSession: Identifiable, Hashable, Codable, Sendable {
         self.endedAt = endedAt
         self.notes = notes
         self.healthKitWorkoutID = healthKitWorkoutID
+        self.followsWorkout = followsWorkout
     }
 
     /// Done once finished; missed when the day passed without finishing;

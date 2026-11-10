@@ -1,19 +1,15 @@
 import FactoryKit
 import Foundation
 
-/// The plan-a-day sheet: every workout the user has, one tap to put it on the
-/// day. The pick is saved right away, so Home updates behind the sheet.
+/// The plan-a-day sheet: every workout the user has, each opening the
+/// workout so it can be planned for the day.
 @MainActor
 @Observable
 final class PlanDayScreenModel {
     let day: Date
-    /// The workout just planned; set once — the sheet closes shortly after.
-    private(set) var pickedID: UUID?
 
     @ObservationIgnored
     @Injected(\.workoutStore) private var workoutStore
-    @ObservationIgnored
-    @Injected(\.workoutSessionStore) private var sessionStore
 
     init(day: Date) {
         self.day = day
@@ -28,12 +24,5 @@ final class PlanDayScreenModel {
 
     var items: [PlanDayItem] {
         workoutStore.templates.map { PlanDayItem(workout: $0) }
-    }
-
-    /// Plans the workout on the day. Only the first pick counts.
-    func pick(_ id: UUID) {
-        guard pickedID == nil, let workout = workoutStore.template(id: id) else { return }
-        pickedID = id
-        sessionStore.add(WorkoutSession(workout: workout, scheduledFor: day))
     }
 }

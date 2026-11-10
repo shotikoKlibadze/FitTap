@@ -3,6 +3,13 @@ import FactoryKit
 extension Container {
     // Registrations live here — one file for the whole dependency graph.
 
+    /// The database. Only stores use it; screens and screen models never do.
+    @MainActor
+    var swiftDataManager: Factory<SwiftDataManager> {
+        self { MainActor.assumeIsolated { SwiftDataManager() } }
+            .singleton
+    }
+
     /// Built-in and user-created exercises, shared by every screen that
     /// lists or looks up exercises.
     @MainActor
@@ -22,6 +29,14 @@ extension Container {
     @MainActor
     var workoutSessionStore: Factory<WorkoutSessionStore> {
         self { MainActor.assumeIsolated { WorkoutSessionStore() } }
+            .singleton
+    }
+
+    /// Sets per muscle group, progression and cardio minutes, read from the
+    /// logged sessions — what the Stats tab shows.
+    @MainActor
+    var statsStore: Factory<StatsStore> {
+        self { MainActor.assumeIsolated { StatsStore() } }
             .singleton
     }
 }

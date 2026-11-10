@@ -15,7 +15,9 @@ import SwiftUI
 /// `withAnimation` morphs the card in place: pills fade to text, the row's
 /// trailing button swaps, "+ Add Set" fades, the rows tighten or loosen.
 ///
-/// Cardio has no sets: one row with duration and an optional speed.
+/// Cardio has no sets: one row with duration and an optional speed. A hold
+/// (wall sit, plank) has sets with one value each, the time held, in a
+/// single pill that reports through `onTapReps`.
 struct ExerciseCard: View {
     enum Mode {
         /// Read-only, as on a workout's details.
@@ -117,22 +119,15 @@ struct ExerciseCard: View {
                 .foregroundStyle(FTColors.textSecondary)
                 .frame(width: 22)
 
-            // Reps : weight split 1 : 1.35, as in the design. Fixed shares —
-            // a layout priority would let one pill swallow the other.
-            GeometryReader { proxy in
-                let repsWidth = (proxy.size.width - 8) / 2.35
-                HStack(spacing: 8) {
-                    pill(value: "\(set.reps)", unitLabel: "reps", textAlignment: .leading, isDimmed: isDone) {
-                        onTapReps(set.id)
-                    }
-                    .frame(width: repsWidth)
-
-                    pill(value: weightValue(set), unitLabel: weightUnitLabel, textAlignment: .trailing, isDimmed: isDone) {
-                        onTapWeight(set.id)
-                    }
+            if exercise.kind == .hold {
+                let time = set.duration.map(HoldTimeFormatter.parts)
+                pill(value: time?.value ?? "—", unitLabel: time?.unit, textAlignment: .leading, isDimmed: isDone, failed: set.failed) {
+                    onTapReps(set.id)
                 }
+                .frame(height: rowHeight)
+            } else {
+                repsAndWeight(set: set, isDone: isDone)
             }
-            .frame(height: rowHeight)
 
             switch mode {
             case .edit:
@@ -148,6 +143,25 @@ struct ExerciseCard: View {
                 EmptyView()
             }
         }
+    }
+
+    /// Reps : weight split 1 : 1.35, as in the design. Fixed shares — a
+    /// layout priority would let one pill swallow the other.
+    private func repsAndWeight(set: SetEntry, isDone: Bool) -> some View {
+        GeometryReader { proxy in
+            let repsWidth = (proxy.size.width - 8) / 2.35
+            HStack(spacing: 8) {
+                pill(value: "\(set.reps)", unitLabel: "reps", textAlignment: .leading, isDimmed: isDone) {
+                    onTapReps(set.id)
+                }
+                .frame(width: repsWidth)
+
+                pill(value: weightValue(set), unitLabel: weightUnitLabel, textAlignment: .trailing, isDimmed: isDone, failed: set.failed) {
+                    onTapWeight(set.id)
+                }
+            }
+        }
+        .frame(height: rowHeight)
     }
 
     /// Duration and optional speed; no set number. Removing it removes the
@@ -186,15 +200,25 @@ struct ExerciseCard: View {
     /// pill; viewing, the pill's fill fades away and the text slides to
     /// `textAlignment`, so the same view carries both looks and the switch
     /// animates. `isDimmed` greys the value — a set already logged.
+    /// `failed` puts a red "Failed" in front while viewing.
     private func pill(
         value: String,
         unitLabel: String?,
         textAlignment: Alignment,
         isDimmed: Bool = false,
+        failed: Bool = false,
         action: @escaping () -> Void,
     ) -> some View {
         Button(action: action) {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
+                // Reading a logged workout, a failed set says so before its
+                // weight; working out, the red check already shows it.
+                if failed && mode == .view {
+                    Text("Failed")
+                        .font(FTFonts.bodySemibold)
+                        .foregroundStyle(FTColors.redAccent)
+                        .padding(.trailing, 4)
+                }
                 Text(value)
                     .font(FTFonts.bodySemibold)
                     .foregroundStyle(isDimmed ? FTColors.textSecondary : FTColors.textPrimary)
@@ -227,7 +251,7 @@ struct ExerciseCard: View {
         case .bodyweight:
             guard let added = set.weight, added > 0 else { return "BW" }
             return "BW + \(LoadDisplayFormatter.trimmed(added))"
-        case .weightlifting, .cardio:
+        case .weightlifting, .cardio, .hold:
             guard let weight = set.weight else { return "—" }
             return LoadDisplayFormatter.trimmed(weight)
         }
@@ -250,6 +274,7 @@ struct ExerciseCard: View {
             order: workoutExercise.sets.count,
             reps: last?.reps ?? 10,
             weight: last?.weight,
+            duration: last?.duration,
         )
         withAnimation(.smooth(duration: 0.25)) {
             workoutExercise.sets.append(newSet)
@@ -294,6 +319,8 @@ struct ExerciseCard: View {
             case .failed:
                 workoutExercise.sets[index].loggedAt = workoutExercise.sets[index].loggedAt ?? .now
                 workoutExercise.sets[index].failed = true
+                // A failed set already says it was hard; any rating goes.
+                workoutExercise.effort = nil
             }
         }
         guard status == .done, !wasDone, let frame = checkFrames[id] else { return }

@@ -1,8 +1,9 @@
 import DesignSystem
 import SwiftUI
 
-/// Cardio duration presets in minutes, 5 to 90, with "Custom…" as the
-/// escape hatch. Custom pushes the number entry panel in from the right;
+/// Time presets with "Custom…" as the escape hatch: cardio duration in
+/// minutes by default, or a hold's time when given its own title, unit and
+/// labels. Custom pushes the number entry panel in from the right;
 /// its back button pops it out the same way.
 struct DurationPicker: View {
     let subtitle: String
@@ -11,6 +12,13 @@ struct DurationPicker: View {
     @Binding var isCustom: Bool
     @Binding var customText: String
     let onSaveCustom: (Double) -> Void
+    /// The heading over the presets.
+    var title = "Select duration"
+    var customTitle = "Custom Duration"
+    /// The unit typed in custom entry.
+    var customUnit = "min"
+    /// How a preset reads.
+    var label: (Double) -> String = { "\(Int($0)) min" }
 
     @State private var pageWidth: CGFloat = 0
 
@@ -22,9 +30,9 @@ struct DurationPicker: View {
         ZStack(alignment: .top) {
             if isCustom {
                 NumberEntryPanel(
-                    title: "Custom Duration",
+                    title: customTitle,
                     subtitle: subtitle,
-                    unit: "min",
+                    unit: customUnit,
                     allowsDecimal: false,
                     text: $customText,
                     onSet: onSaveCustom,
@@ -44,7 +52,7 @@ struct DurationPicker: View {
     private var presets: some View {
         VStack(alignment: .leading, spacing: SetValuePickerMetrics.sectionSpacing) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Select duration")
+                Text(title)
                     .font(FTFonts.title3Semibold)
                     .foregroundStyle(FTColors.textPrimary)
                 Text(subtitle)
@@ -53,7 +61,7 @@ struct DurationPicker: View {
             }
 
             ValueGrid(values: values, selection: $selection, cellHeight: SetValuePickerMetrics.gridCellHeight) {
-                "\(Int($0)) min"
+                label($0)
             }
 
             Spacer(minLength: 0)

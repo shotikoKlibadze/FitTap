@@ -8,6 +8,8 @@ struct StatsView: View {
     let suggestion: StatsSuggestionItem?
     /// Oldest first; the view opens on the last.
     let calendarMonths: [StatsCalendarMonth]
+    /// The month the calendar opens on: this one.
+    let currentMonthID: Date
     let progressionItems: [StatsProgressionItem]
     let cardioWeekMinutes: Int
     let cardioMonthMinutes: Int
@@ -53,34 +55,58 @@ struct StatsView: View {
     /// snapping to a card. The scroll runs the full screen width, so cards
     /// slide to the edges; its content margins rest each card on the gutter,
     /// and a gap of one gutter keeps the neighbours just off screen.
+    /// The month the calendar settles on. Starts on this month.
+    @State private var visibleMonth: Date?
+    /// Where the swipe is, in months (2.4 between the third and fourth);
+    /// the dots follow it as the finger moves.
+    @State private var monthPosition: Double?
+
     private var calendarPager: some View {
-        ScrollView(.horizontal) {
-            HStack(alignment: .top, spacing: gutter) {
-                ForEach(calendarMonths) { month in
-                    StatsCalendarCard(month: month)
-                        .containerRelativeFrame(.horizontal)
-                        // As on the Home week strip: a month shrinks a little
-                        // as it leaves and grows back as it settles, so the
-                        // swipe reads as depth, not a slide.
-                        .scrollTransition(axis: .horizontal) { content, phase in
-                            content
-                                .scaleEffect(1 - abs(phase.value) * 0.12)
-                                .opacity(1 - abs(phase.value) * 0.3)
-                        }
+        VStack(spacing: 0) {
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: gutter) {
+                    ForEach(calendarMonths) { month in
+                        StatsCalendarCard(month: month)
+                            .containerRelativeFrame(.horizontal)
+                            // As on the Home week strip: a month shrinks a little
+                            // as it leaves and grows back as it settles, so the
+                            // swipe reads as depth, not a slide.
+                            .scrollTransition(axis: .horizontal) { content, phase in
+                                content
+                                    .scaleEffect(1 - abs(phase.value) * 0.12)
+                                    .opacity(1 - abs(phase.value) * 0.3)
+                            }
+                    }
                 }
+                .scrollTargetLayout()
+                // Room above and below the cards so their shadow isn't cut by
+                // the scroll view's clip.
+                .padding(.vertical, shadowRoom)
             }
-            .scrollTargetLayout()
-            // Room above and below the cards so their shadow isn't cut by
-            // the scroll view's clip.
-            .padding(.vertical, shadowRoom)
+            .contentMargins(.horizontal, gutter, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $visibleMonth)
+            // One page is a card plus the gap: the scroll width less a gutter.
+            .onScrollGeometryChange(for: Double.self) { geometry in
+                let page = max(1, geometry.containerSize.width - gutter)
+                return (geometry.contentOffset.x + geometry.contentInsets.leading) / page
+            } action: { _, position in
+                monthPosition = position
+            }
+            .scrollIndicators(.hidden)
+            // Out of the screen gutter to the edges.
+            .padding(.horizontal, -gutter)
+            // The room above overlaps the title's spacing instead of adding to it.
+            .padding(.top, -shadowRoom)
+            .onAppear {
+                if visibleMonth == nil { visibleMonth = currentMonthID }
+            }
+            PageDots(count: calendarMonths.count, position: monthPosition ?? Double(visibleMonthIndex))
         }
-        .contentMargins(.horizontal, gutter, for: .scrollContent)
-        .scrollTargetBehavior(.viewAligned)
-        .scrollIndicators(.hidden)
-        // Out of the screen gutter to the edges.
-        .padding(.horizontal, -gutter)
-        // The room above overlaps the title's spacing instead of adding to it.
-        .padding(.top, -shadowRoom)
+    }
+
+    private var visibleMonthIndex: Int {
+        calendarMonths.firstIndex { $0.id == (visibleMonth ?? currentMonthID) } ?? 0
     }
 
     /// The screen gutter.
@@ -104,6 +130,7 @@ private struct StatsViewPreviewHost: View {
         StatsView(
             suggestion: .sample,
             calendarMonths: StatsCalendarMonth.samples,
+            currentMonthID: StatsCalendarMonth.samples.last?.id ?? .now,
             progressionItems: StatsProgressionItem.samples,
             cardioWeekMinutes: 34,
             cardioMonthMinutes: 85,

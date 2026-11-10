@@ -35,4 +35,10 @@ struct WorkoutExercise: Identifiable, Hashable, Codable, Sendable {
     var allSetsLogged: Bool {
         !sets.isEmpty && sets.allSatisfy { $0.loggedAt != nil }
     }
+
+    /// Every set checked off and none failed. Only then is "How did it
+    /// feel?" asked: a failed set already says it was hard.
+    var allSetsCompleted: Bool {
+        allSetsLogged && !sets.contains(where: \.failed)
+    }
 }
