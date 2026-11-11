@@ -80,6 +80,14 @@ final class WorkoutScreenModel {
         }
     }
 
+    /// Opened from a finished session — done, or logged for a past day.
+    /// Editing it fixes the record, as while working out: sets are checked
+    /// off, failed or unchecked and ratings changed; nothing is reordered.
+    var isLoggedWorkout: Bool {
+        guard case .finishedSession = source else { return false }
+        return true
+    }
+
     /// The session this was opened from, while it's still to come (or missed).
     private var plannedSession: WorkoutSession? {
         guard case .plannedSession(let id) = source else { return nil }
@@ -290,11 +298,19 @@ final class WorkoutScreenModel {
         isEditing = false
     }
 
-    /// Opened from a day on Home while its workout still exists: Save first
-    /// asks whether the change is for this day only or for every session
-    /// of the workout.
+    /// Save asks first where the edit could go more than one way. From a
+    /// day still to come (or missed): this day only, every session of the
+    /// workout, or a new workout. The workout on its own: update it, or a
+    /// new workout. A finished day is its own record — fixing it never
+    /// touches the workout — and a new workout has nothing to choose.
     var asksSaveScope: Bool {
-        openedSession != nil && generalWorkout != nil
+        guard !isNew, generalWorkout != nil else { return false }
+        return isEditingDay || openedSession == nil
+    }
+
+    /// Editing one planned (or missed) day of a workout that still exists.
+    var isEditingDay: Bool {
+        plannedSession != nil && generalWorkout != nil
     }
 
     /// The workout itself ("Leg Day"), as on the Workouts tab.
@@ -317,7 +333,8 @@ final class WorkoutScreenModel {
             return
         }
         if let openedSession {
-            sessionStore.updateWorkout(ofSession: openedSession.id, to: workout)
+            let edited = isLoggedWorkout ? workout.dated(within: openedSession) : workout
+            sessionStore.updateWorkout(ofSession: openedSession.id, to: edited)
             if everywhere, generalWorkout != nil {
                 workoutStore.update(workout.asPlan())
             }
@@ -329,6 +346,39 @@ final class WorkoutScreenModel {
             load(storedWorkout)
         }
         isEditing = false
+    }
+
+    /// Keeps the workout as it was and saves the edits as a new workout on
+    /// the Workouts tab — "Shoulder Day 2" when the name wasn't changed.
+    /// Editing a planned day, that day also takes the edits, for itself
+    /// only, as with "This Day Only"; it stays a day of the original
+    /// workout. On its own, the workout keeps its stored values and the
+    /// Screen closes.
+    func saveAsNew() {
+        let new = WorkoutTemplate(
+            name: newWorkoutName,
+            color: color,
+            type: type,
+            primaryMuscleGroup: primaryMuscleGroup,
+            secondaryMuscleGroup: secondaryMuscleGroup,
+            exercises: exercises,
+        ).asPlan()
+        workoutStore.add(new)
+        if isEditingDay {
+            save()
+        } else {
+            cancelEditing()
+        }
+    }
+
+    /// The draft's name, numbered past the workouts that already use it.
+    private var newWorkoutName: String {
+        let base = resolvedName
+        let taken = Set(workoutStore.templates.map(\.name))
+        guard taken.contains(base) else { return base }
+        var number = 2
+        while taken.contains("\(base) \(number)") { number += 1 }
+        return "\(base) \(number)"
     }
 
     /// Opens the workout as a session. Opened from a planned session, that one

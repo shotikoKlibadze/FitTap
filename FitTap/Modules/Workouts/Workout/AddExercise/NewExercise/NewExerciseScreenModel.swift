@@ -14,11 +14,11 @@ final class NewExerciseScreenModel {
         .kettlebell, .bodyweight, .pullUpBar, .other,
     ]
 
-    let primaryOptions = MuscleGroup.allCases
+    let primaryOptions = MuscleGroup.exerciseGroups
 
     /// The primary muscle can't also be the secondary.
     var secondaryOptions: [MuscleGroup] {
-        MuscleGroup.allCases.filter { $0 != primaryMuscleGroup }
+        MuscleGroup.exerciseGroups.filter { $0 != primaryMuscleGroup }
     }
 
     /// Starts on the muscle the exercise list is filtered to, if any.

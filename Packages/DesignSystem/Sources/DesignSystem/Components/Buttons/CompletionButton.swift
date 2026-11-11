@@ -40,6 +40,11 @@ public struct CompletionButton: View {
 
     @State private var isExpanded = false
     @State private var isPressing = false
+    /// Opens the choices once the press has lasted `holdDuration`.
+    @State private var holdTimer: Task<Void, Never>?
+
+    /// How long a press must last to open the choices.
+    private let holdDuration: Double = 0.35
 
     public var body: some View {
         // The slot in the layout is always the collapsed circle; the capsule
@@ -82,10 +87,21 @@ public struct CompletionButton: View {
             .scaleEffect(isPressing ? 0.9 : 1)
             .animation(.smooth(duration: 0.15), value: isPressing)
             .onTapGesture { onChange(status == .open ? .done : .open) }
-            .onLongPressGesture(minimumDuration: 0.35) {
+            .onLongPressGesture(minimumDuration: holdDuration) {
                 isExpanded = true
             } onPressingChanged: { pressing in
                 isPressing = pressing
+                holdTimer?.cancel()
+                guard pressing else { return }
+                // Inside a scroll view the long press only reports on lift;
+                // the press itself starts on touch, so the choices open from
+                // this timer while the finger is still down. Letting go or
+                // scrolling ends the press and cancels it.
+                holdTimer = Task {
+                    try? await Task.sleep(for: .seconds(holdDuration))
+                    guard !Task.isCancelled else { return }
+                    isExpanded = true
+                }
             }
     }
 

@@ -73,7 +73,7 @@ struct AddExerciseView: View {
                     Chip(title: "Cardio", isSelected: filter == .cardio) {
                         filter = .cardio
                     }
-                    ForEach(MuscleGroup.allCases, id: \.self) { group in
+                    ForEach(MuscleGroup.exerciseGroups, id: \.self) { group in
                         Chip(title: group.displayName, isSelected: filter == .muscle(group)) {
                             filter = .muscle(group)
                         }

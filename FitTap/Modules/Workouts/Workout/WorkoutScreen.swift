@@ -32,6 +32,7 @@ struct WorkoutScreen: View {
     var body: some View {
         WorkoutView(
             isEditing: screenModel.isEditing,
+            isLoggedWorkout: screenModel.isLoggedWorkout,
             showsPlanButton: screenModel.showsPlanButton,
             showsStartButton: screenModel.showsStartButton,
             planDayTitle: screenModel.planDayTitle,
@@ -87,15 +88,8 @@ struct WorkoutScreen: View {
         .appAlert(
             isPresented: $isShowingSaveScopeAlert,
             title: "Save changes to \(screenModel.generalWorkoutName)?",
-            message: "Change only this day, or every \(screenModel.generalWorkoutName) — the days you've planned follow it.",
-            actions: [
-                AppAlertAction("This Day Only") {
-                    withAnimation(modeChange) { screenModel.save() }
-                },
-                AppAlertAction("Every \(screenModel.generalWorkoutName)") {
-                    withAnimation(modeChange) { screenModel.save(everywhere: true) }
-                },
-            ],
+            message: saveScopeMessage,
+            actions: saveScopeActions,
         )
         .appAlert(
             isPresented: $isShowingPlannedAlert,
@@ -106,6 +100,42 @@ struct WorkoutScreen: View {
                 AppAlertAction("Change Date", action: screenModel.didTapChangeDate),
             ],
         )
+    }
+
+    private var saveScopeMessage: String {
+        let name = screenModel.generalWorkoutName
+        return screenModel.isEditingDay
+            ? "Change only this day, every \(name), or keep \(name) as it is and save this as a new workout."
+            : "Change \(name) — the days you've planned follow it — or keep it as it is and save this as a new workout."
+    }
+
+    /// A planned day: this day, every session of the workout, or new. The
+    /// workout on its own: update it, or new.
+    private var saveScopeActions: [AppAlertAction] {
+        let name = screenModel.generalWorkoutName
+        var actions: [AppAlertAction] = []
+        if screenModel.isEditingDay {
+            actions.append(AppAlertAction("This Day Only") {
+                withAnimation(modeChange) { screenModel.save() }
+            })
+            actions.append(AppAlertAction("Every \(name)") {
+                withAnimation(modeChange) { screenModel.save(everywhere: true) }
+            })
+        } else {
+            actions.append(AppAlertAction("Update \(name)") {
+                withAnimation(modeChange) { screenModel.save() }
+            })
+        }
+        // A planned day stays open on its edited self; the workout on its
+        // own is unchanged, so the screen closes.
+        actions.append(AppAlertAction("Save as New Workout") {
+            guard screenModel.isEditingDay else {
+                screenModel.saveAsNew()
+                return close()
+            }
+            withAnimation(modeChange) { screenModel.saveAsNew() }
+        })
+        return actions
     }
 
     /// Reading: "Edit". Editing an existing workout: "Cancel". A new workout
@@ -170,8 +200,8 @@ struct WorkoutScreen: View {
         }
     }
 
-    /// Editing a day from Home asks first: this day only, or every session
-    /// of the workout.
+    /// Editing an existing workout asks first where the change goes (see
+    /// `saveScopeActions`).
     private func handleSave() {
         if screenModel.isNew {
             screenModel.save()

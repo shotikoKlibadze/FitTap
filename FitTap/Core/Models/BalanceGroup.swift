@@ -17,7 +17,7 @@ enum BalanceGroup: String, CaseIterable, Sendable {
         case .chest: self = .chest
         case .back: self = .back
         case .shoulders: self = .shoulders
-        case .biceps, .triceps: self = .arms
+        case .arms, .biceps, .triceps: self = .arms
         case .abs: self = .abs
         case .legs: self = .legs
         case .fullBody: return nil

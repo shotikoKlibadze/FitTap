@@ -19,6 +19,9 @@ import SwiftUI
 /// bar over a slot of its own width, so nothing in the bar moves.
 struct WorkoutView: View {
     let isEditing: Bool
+    /// A finished workout: editing it works like the session screen — a
+    /// check per set and the rating — with no reordering.
+    let isLoggedWorkout: Bool
     /// "Plan" beside "Start Workout" while reading.
     let showsPlanButton: Bool
     /// "Start Workout" while reading; off for a day already done or missed.
@@ -283,86 +286,114 @@ struct WorkoutView: View {
         } else {
             section("Exercises") {
                 VStack(spacing: 12) {
-                    // The reorder container holds only the exercises, as on
-                    // the session screen; "Add Exercise" sits outside it.
-                    VStack(spacing: 12) {
-                        ForEach(exercises) { workoutExercise in
-                            if let exercise = catalog[workoutExercise.exerciseID] {
-                                // A logged rating hangs under its card while
-                                // reading, as it did during the workout; it can't
-                                // be changed here.
-                                VStack(spacing: 0) {
-                                    ExerciseCard(
-                                        exercise: exercise,
-                                        workoutExercise: binding(for: workoutExercise),
-                                        mode: isEditing ? .edit : .view,
-                                        onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
-                                        onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
-                                        onTapDuration: { onTapDuration(workoutExercise.id) },
-                                        onTapSpeed: { onTapSpeed(workoutExercise.id) },
-                                        onTapSuggestion: {},
-                                        onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
-                                    )
-                                    .zIndex(1)
-                                    // Only for an exercise with every set completed: a
-                                    // failed set needs no rating.
-                                    if !isEditing, workoutExercise.allSetsCompleted, let effort = workoutExercise.effort {
-                                        RatingStrip(
-                                            prompt: "How did it feel?",
-                                            options: Effort.ratingOptions,
-                                            selectedID: .constant(effort.rawValue),
-                                        )
-                                        .allowsHitTesting(false)
-                                        .padding(.horizontal, RatingStrip.sideInset)
-                                        .padding(.top, -RatingStrip.cardOverlap)
-                                        .transition(.opacity)
-                                    }
-                                }
-                                // While editing, swipe left to delete the exercise.
-                                .swipeActions(edge: .trailing) {
-                                    if isEditing {
-                                        Button(role: .destructive) {
-                                            withAnimation(.smooth(duration: 0.25)) {
-                                                onRemoveExercise(workoutExercise.id)
-                                            }
-                                        } label: {
-                                            Label { Text("Delete") } icon: { FTIcons.trash }
-                                                // Just the icon, centred; "Delete" stays for VoiceOver.
-                                                .labelStyle(.iconOnly)
-                                        }
-                                    }
-                                }
-                                // Each row carries its exercise's id, as the
-                                // session's rows do, for the reorder container.
-                                .id(workoutExercise.id)
-                                .transition(.opacity)
-                            }
-                        }
-                        // While editing, hold an exercise and drag it to reorder.
-                        .reorderable()
-                    }
-                    .reorderContainer(for: WorkoutExercise.self, isEnabled: isEditing) { difference in
-                        withAnimation(.smooth(duration: 0.3)) {
-                            exercises.reorder(difference)
-                        }
-                    }
-                    // Reading, the cards are just to look at: no taps and no
-                    // long-press lift, which would start even with reordering
-                    // off. Scrolling still works — the scroll view owns it.
-                    .allowsHitTesting(isEditing)
-                    // A light thud as the card lifts and reordering starts.
-                    .onDragSessionUpdated { session in
-                        guard session.id != liftedDrag else { return }
-                        liftedDrag = session.id
-                        reorderLift += 1
-                    }
-                    .sensoryFeedback(.impact(weight: .medium), trigger: reorderLift)
+                    exerciseList
+                        // Reading, the cards are just to look at: no taps and
+                        // no long-press lift, which would start even with
+                        // reordering off. Scrolling still works — the scroll
+                        // view owns it.
+                        .allowsHitTesting(isEditing)
                     if isEditing {
                         AddButton(title: "Add Exercise", action: onTapAddExercise)
                             .transition(.opacity)
                     }
                 }
             }
+        }
+    }
+
+    /// The exercise cards. A finished workout's list has no reordering at
+    /// all — its sets' checks need their own long press to fail a set, and
+    /// the reorder lift would take it. Every other list reorders while
+    /// editing. "Add Exercise" sits outside either.
+    @ViewBuilder
+    private var exerciseList: some View {
+        if isLoggedWorkout {
+            VStack(spacing: 12) {
+                ForEach(exercises) { workoutExercise in
+                    exerciseRow(workoutExercise)
+                }
+            }
+        } else {
+            VStack(spacing: 12) {
+                ForEach(exercises) { workoutExercise in
+                    exerciseRow(workoutExercise)
+                }
+                // While editing, hold an exercise and drag it to reorder.
+                .reorderable()
+            }
+            .reorderContainer(for: WorkoutExercise.self, isEnabled: isEditing) { difference in
+                withAnimation(.smooth(duration: 0.3)) {
+                    exercises.reorder(difference)
+                }
+            }
+            // A light thud as the card lifts and reordering starts.
+            .onDragSessionUpdated { session in
+                guard session.id != liftedDrag else { return }
+                liftedDrag = session.id
+                reorderLift += 1
+            }
+            .sensoryFeedback(.impact(weight: .medium), trigger: reorderLift)
+        }
+    }
+
+    /// Editing a finished workout, its cards work as they did while working
+    /// out: a check per set (tap to log, hold to fail) and no ✕ on sets.
+    private var editsLog: Bool {
+        isEditing && isLoggedWorkout
+    }
+
+    /// One exercise's card, with its rating hanging underneath once every
+    /// set is completed. Reading, the rating is shown as logged; editing a
+    /// finished workout, it can be picked again.
+    @ViewBuilder
+    private func exerciseRow(_ workoutExercise: WorkoutExercise) -> some View {
+        if let exercise = catalog[workoutExercise.exerciseID] {
+            let exerciseBinding = binding(for: workoutExercise)
+            VStack(spacing: 0) {
+                ExerciseCard(
+                    exercise: exercise,
+                    workoutExercise: exerciseBinding,
+                    mode: editsLog ? .session : (isEditing ? .edit : .view),
+                    onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
+                    onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
+                    onTapDuration: { onTapDuration(workoutExercise.id) },
+                    onTapSpeed: { onTapSpeed(workoutExercise.id) },
+                    onTapSuggestion: {},
+                    onRemoveExercise: { onRemoveExercise(workoutExercise.id) },
+                )
+                .zIndex(1)
+                // Only for an exercise with every set completed: a failed
+                // set needs no rating.
+                if workoutExercise.allSetsCompleted, editsLog || (!isEditing && workoutExercise.effort != nil) {
+                    RatingStrip(
+                        prompt: "How did it feel?",
+                        options: Effort.ratingOptions,
+                        selectedID: exerciseBinding.effort.ratingID,
+                    )
+                    .allowsHitTesting(editsLog)
+                    .padding(.horizontal, RatingStrip.sideInset)
+                    .padding(.top, -RatingStrip.cardOverlap)
+                    .transition(.opacity)
+                }
+            }
+            // While editing, swipe left to delete the exercise. The action is
+            // always declared — an `if` here left the swipe with nothing to
+            // reveal. Reading, the cards take no touches, so it can't start.
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    withAnimation(.smooth(duration: 0.25)) {
+                        onRemoveExercise(workoutExercise.id)
+                    }
+                } label: {
+                    Label { Text("Delete") } icon: { FTIcons.trash }
+                        // Just the icon, centred; "Delete" stays for VoiceOver.
+                        .labelStyle(.iconOnly)
+                }
+            }
+            // Each row carries its exercise's id for the reorder container,
+            // which crashes without it.
+            .id(workoutExercise.id)
+            .transition(.opacity)
         }
     }
 
@@ -396,6 +427,7 @@ private struct WorkoutViewPreviewHost: View {
         NavigationStack {
             WorkoutView(
                 isEditing: modeIndex == 1,
+                isLoggedWorkout: false,
                 showsPlanButton: true,
                 showsStartButton: true,
                 planDayTitle: nil,
