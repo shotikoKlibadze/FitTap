@@ -275,7 +275,7 @@ final class SwiftDataManager {
                 .map(\.setEntry)
                 .filter { $0.loggedAt != nil }
             guard !sets.isEmpty else { return nil }
-            return ExerciseSessionLog(sessionID: session.id, date: session.startedAt ?? session.scheduledFor, sets: sets)
+            return ExerciseSessionLog(sessionID: session.id, date: session.startedAt ?? session.scheduledFor, sets: sets, effort: row.effortRaw.flatMap(Effort.init(rawValue:)))
         }
         .sorted { $0.date > $1.date }
     }

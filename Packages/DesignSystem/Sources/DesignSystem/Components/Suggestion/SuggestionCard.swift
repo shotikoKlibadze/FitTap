@@ -1,15 +1,18 @@
 import SwiftUI
 
-/// Something the app noticed, said plainly: a gold ⓘ on the left, a short
-/// title ("Legs are falling behind") with a sentence or two under it, and a
-/// chevron, since the card opens the full suggestion. Gold is the colour of
-/// anything the app says on its own; nothing else on the card is coloured.
+/// Something the app noticed, said plainly: a gold ⓘ on the left and a short
+/// title ("Legs are falling behind") with a sentence or two under it. Gold is
+/// the colour of anything the app says on its own; nothing else on the card
+/// is coloured.
+///
+/// With an `action` the card is a button and shows a chevron, since it opens
+/// the full suggestion. Without one it is plain text: no chevron, no tap.
 public struct SuggestionCard: View {
     let title: String
     let message: String
-    let action: () -> Void
+    let action: (() -> Void)?
 
-    public init(title: String, message: String, action: @escaping () -> Void) {
+    public init(title: String, message: String, action: (() -> Void)? = nil) {
         self.title = title
         self.message = message
         self.action = action
@@ -18,32 +21,50 @@ public struct SuggestionCard: View {
     private let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
 
     public var body: some View {
-        Button(action: action) {
-            HStack(alignment: .top, spacing: 12) {
-                FTIcons.info
-                    .font(FTFonts.title3)
-                    .foregroundStyle(FTColors.aiGold)
-                    .padding(.top, 1)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(FTFonts.subheadlineSemibold)
-                        .foregroundStyle(FTColors.textPrimary)
-                    Text(message)
-                        .font(FTFonts.subheadline)
-                        .foregroundStyle(FTColors.textSecondary)
-                }
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        if let action {
+            Button(action: action) {
+                SuggestionCardContent(title: title, message: message, showsChevron: true)
+                    .contentShape(shape)
+            }
+            .buttonStyle(.press)
+            .elevatedSurface(in: shape)
+        } else {
+            SuggestionCardContent(title: title, message: message, showsChevron: false)
+                .elevatedSurface(in: shape)
+        }
+    }
+}
+
+/// The card's inside, shared by its tappable and plain forms.
+private struct SuggestionCardContent: View {
+    let title: String
+    let message: String
+    let showsChevron: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            FTIcons.info
+                .font(FTFonts.title3)
+                .foregroundStyle(FTColors.aiGold)
+                .padding(.top, 1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(FTFonts.subheadlineSemibold)
+                    .foregroundStyle(FTColors.textPrimary)
+                Text(message)
+                    .font(FTFonts.subheadline)
+                    .foregroundStyle(FTColors.textSecondary)
+            }
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if showsChevron {
                 FTIcons.chevronRight
                     .font(FTFonts.caption2Semibold)
                     .foregroundStyle(FTColors.textSecondary)
                     .padding(.top, 4)
             }
-            .padding(16)
-            .contentShape(shape)
         }
-        .buttonStyle(.press)
-        .elevatedSurface(in: shape)
+        .padding(16)
     }
 }
 
@@ -61,6 +82,10 @@ private struct SuggestionCardPreviewHost: View {
                 title: "Back volume is up 30%",
                 message: "Lat Pulldown and Cable Row both moved. Nothing to change here.",
             ) { taps += 1 }
+            SuggestionCard(
+                title: "Stay at this weight",
+                message: "No action: plain text, no chevron.",
+            )
             Text("\(taps) taps")
                 .font(FTFonts.footnote)
                 .foregroundStyle(FTColors.textSecondary)

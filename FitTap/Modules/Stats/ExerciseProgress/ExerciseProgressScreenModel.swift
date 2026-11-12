@@ -1,15 +1,20 @@
 import FactoryKit
 import Foundation
 
-/// One exercise's progression, opened from the Stats tab: its personal best
-/// and every session it was logged in, newest first.
+/// One exercise's progression, opened from the Stats tab: the coach's
+/// suggestion when it has one, the personal best, and every session the
+/// exercise was logged in, newest first.
 @MainActor
 @Observable
 final class ExerciseProgressScreenModel {
     let exerciseID: UUID
 
+    /// What the coach suggests for the next session; nil when it has
+    /// nothing to say.
+    private(set) var suggestion: NudgeText?
     private(set) var personalBest: PersonalBestItem?
     private(set) var sessions: [ExerciseSessionItem] = []
+    var destination: ExerciseProgressScreenDestination?
 
     @ObservationIgnored @Injected(\.statsStore) private var statsStore
     @ObservationIgnored @Injected(\.exerciseStore) private var exerciseStore
@@ -33,10 +38,16 @@ final class ExerciseProgressScreenModel {
     func reload() {
         let logs = statsStore.history(ofExercise: exerciseID)
         sessions = logs.compactMap(sessionItem)
+        suggestion = CoachEngine().nudge(for: logs).map(NudgeWording.text)
         let best = logs
             .compactMap { log in log.bestSet.map { (set: $0, date: log.date) } }
             .max { $0.set.rank < $1.set.rank }
         personalBest = best.map { bestItem($0.set, date: $0.date) }
+    }
+
+    /// The suggestion card opens the coach's deeper analysis.
+    func didTapSuggestion() {
+        destination = .coachAnalysis(exerciseID: exerciseID)
     }
 
     // MARK: - Mapping
@@ -49,6 +60,7 @@ final class ExerciseProgressScreenModel {
             value: loadText(top),
             sets: exercise?.kind == .hold ? "\(log.sets.count) sets" : "\(log.sets.count)×\(top.reps)",
             failed: log.hasFailedSet,
+            effort: log.effort,
         )
     }
 

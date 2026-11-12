@@ -1,15 +1,22 @@
 import DesignSystem
 import SwiftUI
 
-/// One exercise's progression: its personal best, then "Recent Sessions",
-/// newest first, six at a time. The exercise's name is the toolbar title.
+/// One exercise's progression: the coach's suggestion when there is one (a
+/// tap opens its deeper analysis), its personal best, then "Recent
+/// Sessions": one small card per session, newest first, six at a time. The
+/// exercise's name is the toolbar title.
 struct ExerciseProgressView: View {
+    let suggestion: NudgeText?
     let personalBest: PersonalBestItem?
     let sessions: [ExerciseSessionItem]
+    let onTapSuggestion: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
+                if let suggestion {
+                    SuggestionCard(title: suggestion.title, message: suggestion.message, action: onTapSuggestion)
+                }
                 if let personalBest {
                     PersonalBestCard(item: personalBest)
                 }
@@ -17,7 +24,7 @@ struct ExerciseProgressView: View {
                     SectionHeader(title: "Recent Sessions")
                         .frame(minHeight: 30)
                         .padding(.top, personalBest == nil ? 0 : 8)
-                    RecentSessionsCard(items: sessions)
+                    RecentSessionsList(items: sessions)
                 }
             }
         }
@@ -31,7 +38,7 @@ struct ExerciseProgressView: View {
 #if DEBUG
 private struct ExerciseProgressViewPreviewHost: View {
     var body: some View {
-        ExerciseProgressView(personalBest: .sample, sessions: ExerciseSessionItem.samples)
+        ExerciseProgressView(suggestion: .sample, personalBest: .sample, sessions: ExerciseSessionItem.samples, onTapSuggestion: {})
     }
 }
 

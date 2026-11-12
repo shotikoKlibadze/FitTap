@@ -12,9 +12,12 @@ struct ExerciseProgressScreen: View {
 
     var body: some View {
         ExerciseProgressView(
+            suggestion: screenModel.suggestion,
             personalBest: screenModel.personalBest,
             sessions: screenModel.sessions,
+            onTapSuggestion: screenModel.didTapSuggestion,
         )
+        .navigate(to: $screenModel.destination)
         // Read on first show and whenever a session is saved.
         .task(id: screenModel.dataRevision) {
             screenModel.reload()

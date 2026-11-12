@@ -9,6 +9,8 @@ struct ExerciseSessionLog: Identifiable, Hashable, Sendable {
     let date: Date
     /// Logged sets only, in order; never empty.
     let sets: [SetEntry]
+    /// How the exercise felt that day; nil when it wasn't rated.
+    let effort: Effort?
 
     var id: UUID { sessionID }
 
