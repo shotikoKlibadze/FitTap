@@ -31,6 +31,9 @@ struct ExerciseCard: View {
     let exercise: Exercise
     @Binding var workoutExercise: WorkoutExercise
     var mode: Mode = .edit
+    /// In `.session`, shows "+ Add Set" too — fixing a finished workout,
+    /// where a set may have been left out. `.edit` always shows it.
+    var canAddSets = false
     /// e.g. "Previous best 20 kg /side × 10"; nil hides the line.
     var previousBest: String?
     var unit: WeightUnit = .kg
@@ -70,7 +73,7 @@ struct ExerciseCard: View {
                     ForEach(Array(workoutExercise.sets.enumerated()), id: \.element.id) { index, set in
                         setRow(index: index, set: set)
                     }
-                    if isEditing {
+                    if isEditing || (mode == .session && canAddSets) {
                         addSetButton
                             .transition(.opacity)
                     }

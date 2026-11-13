@@ -20,6 +20,7 @@ struct WorkoutSessionScreen: View {
             title: screenModel.title,
             color: screenModel.color.color,
             isConfirmingExit: $screenModel.isConfirmingExit,
+            isEditing: $screenModel.isEditing,
             hasLoggedSets: screenModel.hasLoggedSets,
             exitMessage: screenModel.exitMessage,
             progress: screenModel.progress,
@@ -32,10 +33,16 @@ struct WorkoutSessionScreen: View {
             onTapWeight: screenModel.didTapWeight,
             onTapDuration: screenModel.didTapDuration,
             onTapSpeed: screenModel.didTapSpeed,
+            onRemoveExercise: screenModel.removeExercise,
+            onTapAddExercise: screenModel.didTapAddExercise,
             onClose: endWorkout,
             onEndWorkout: endWorkout,
             onFinish: finish,
         )
+        .navigate(to: $screenModel.destination)
+        .navigationCheckpoint(WorkoutCheckpoints.addExercises) { ids in
+            screenModel.addExercises(ids)
+        }
         .bottomSheet(item: $screenModel.setValuePicker, height: { _ in SetValuePickerMetrics.sheetHeight }) { context in
             SetValuePickerScreen(context: context, onPick: screenModel.applySetValue)
         }

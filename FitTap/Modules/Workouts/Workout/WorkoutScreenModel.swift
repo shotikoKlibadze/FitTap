@@ -445,35 +445,9 @@ final class WorkoutScreenModel {
         destination = .addExercise(type == .cardio ? .cardio : .all)
     }
 
-    /// Each picked exercise arrives with one starter set: 10 reps, 10 kg
-    /// (no weight for bodyweight moves), or a one-minute hold. Cardio has no
-    /// sets — it arrives as 30 minutes with no speed yet.
+    /// Each picked exercise arrives with a starter set (see `add(_:from:)`).
     func addExercises(_ ids: [UUID]) {
-        let start = exercises.count
-        let added = ids.enumerated().compactMap { offset, id -> WorkoutExercise? in
-            guard let exercise = catalog[id] else { return nil }
-            if exercise.kind == .cardio {
-                return WorkoutExercise(
-                    exerciseID: id,
-                    order: start + offset,
-                    cardio: CardioEntry(duration: 30 * 60),
-                )
-            }
-            if exercise.kind == .hold {
-                return WorkoutExercise(
-                    exerciseID: id,
-                    order: start + offset,
-                    sets: [SetEntry(order: 0, reps: 0, duration: 60)],
-                )
-            }
-            let weight: Double? = exercise.kind == .weightlifting ? 10 : nil
-            return WorkoutExercise(
-                exerciseID: id,
-                order: start + offset,
-                sets: [SetEntry(order: 0, reps: 10, weight: weight)],
-            )
-        }
-        exercises.append(contentsOf: added)
+        exercises.add(ids, from: catalog)
     }
 
     func didTapReps(workoutExerciseID: UUID, setID: UUID) {

@@ -15,21 +15,28 @@ final class StatsStore {
     /// Changes whenever a session is saved or deleted; readers reload on it.
     var revision: Int { database.sessionsRevision }
 
-    /// Sessions per muscle group in `start..<end`: a session counts once for
-    /// every group it trained, by each exercise's main muscle (Limbs Day
-    /// counts for Legs and Arms). Failed sets count: the effort was made.
-    /// Every group is present, at zero if untrained.
-    func sessionsPerGroup(from start: Date, to end: Date) -> [BalanceGroup: Int] {
+    /// Exercises per muscle group in `start..<end`, by each exercise's main
+    /// muscle: an exercise counts once per session it was logged in, however
+    /// many sets it had (Leg Day with five leg exercises is 5 for Legs).
+    /// Biceps and triceps count as Arms. Failed sets count: the effort was
+    /// made. Every group is present, at zero if untrained.
+    func exercisesPerGroup(from start: Date, to end: Date) -> [BalanceGroup: Int] {
         let muscles = Dictionary(
             exerciseStore.exercises.map { ($0.id, $0.mainMuscleGroup) },
             uniquingKeysWith: { first, _ in first },
         )
-        var sessions = Dictionary(uniqueKeysWithValues: BalanceGroup.allCases.map { ($0, Set<UUID>()) })
+        var exercises = Dictionary(uniqueKeysWithValues: BalanceGroup.allCases.map { ($0, Set<SessionExercise>()) })
         for set in database.loggedSets(from: start, to: end) {
             guard let muscle = muscles[set.exerciseID] ?? nil, let group = BalanceGroup(muscle: muscle) else { continue }
-            sessions[group, default: []].insert(set.sessionID)
+            exercises[group, default: []].insert(SessionExercise(sessionID: set.sessionID, exerciseID: set.exerciseID))
         }
-        return sessions.mapValues(\.count)
+        return exercises.mapValues(\.count)
+    }
+
+    /// One exercise in one session — what the balance counts.
+    private struct SessionExercise: Hashable {
+        let sessionID: UUID
+        let exerciseID: UUID
     }
 
     /// Every exercise trained in `start..<end`, most recently trained first:

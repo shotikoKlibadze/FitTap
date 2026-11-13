@@ -354,6 +354,7 @@ struct WorkoutView: View {
                     exercise: exercise,
                     workoutExercise: exerciseBinding,
                     mode: editsLog ? .session : (isEditing ? .edit : .view),
+                    canAddSets: editsLog,
                     onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
                     onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
                     onTapDuration: { onTapDuration(workoutExercise.id) },

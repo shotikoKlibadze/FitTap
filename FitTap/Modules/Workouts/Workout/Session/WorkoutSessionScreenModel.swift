@@ -8,16 +8,21 @@ import Foundation
 @MainActor
 @Observable
 final class WorkoutSessionScreenModel {
+    var destination: WorkoutSessionScreenDestination?
     /// The set whose reps or weight is being picked; non-nil shows the sheet.
     var setValuePicker: SetValuePickerContext?
     /// The ✕ has opened into "End this workout?".
     var isConfirmingExit = false
+    /// "Edit" from the ⋯ menu: exercises can be added, swiped away or
+    /// reordered, and sets added.
+    var isEditing = false
     var exercises: [WorkoutExercise] = [] {
         didSet { save() }
     }
     private(set) var title = ""
     private(set) var color: WorkoutColor = .green
     private(set) var startedAt = Date.now
+    private var type: WorkoutType = .strength
 
     private let sessionID: UUID
     /// Created by tapping Start, rather than planned beforehand.
@@ -36,6 +41,7 @@ final class WorkoutSessionScreenModel {
         guard let session = sessionStore.session(id: sessionID) else { return }
         title = session.workout.name
         color = session.workout.color
+        type = session.workout.type
         startedAt = session.startedAt ?? .now
         exercises = session.workout.exercises
     }
@@ -91,6 +97,26 @@ final class WorkoutSessionScreenModel {
 
     func didTapSpeed(workoutExerciseID: UUID) {
         openCardioPicker(.speed, workoutExerciseID: workoutExerciseID)
+    }
+
+    func didTapAddExercise() {
+        // A cardio workout goes straight to cardio activities.
+        destination = .addExercise(type == .cardio ? .cardio : .all)
+    }
+
+    /// Each picked exercise arrives with a starter set (see `add(_:from:)`).
+    func addExercises(_ ids: [UUID]) {
+        exercises.add(ids, from: catalog)
+    }
+
+    /// Drops the exercise, logged sets and all, and renumbers the rest.
+    func removeExercise(_ id: UUID) {
+        var remaining = exercises.filter { $0.id != id }
+        for index in remaining.indices {
+            remaining[index].order = index
+        }
+        // One assignment, so it saves once.
+        exercises = remaining
     }
 
     /// Writes a value picked in the set value picker and closes the picker.

@@ -31,16 +31,14 @@ public struct GlassCloseConfirmation: View {
 
     @Namespace private var glass
     private let glassID = "close"
-    private let cardShape = RoundedRectangle(cornerRadius: 32, style: .continuous)
-
     public var body: some View {
         GlassEffectContainer {
             if isExpanded {
-                card
+                GlassConfirmationCard(title: title, message: message, actions: actions, onChoose: choose)
                     // Tinted to the bottom sheet's body so it matches the
                     // other overlays. It stays glass, because the ✕ to card
                     // morph only works glass to glass.
-                    .glassEffect(.regular.tint(FTColors.sheetSurface), in: cardShape)
+                    .glassEffect(.regular.tint(FTColors.sheetSurface), in: GlassConfirmationCard.shape)
                     .glassEffectID(glassID, in: glass)
             } else {
                 Button(action: expand) {
@@ -58,27 +56,6 @@ public struct GlassCloseConfirmation: View {
                 .glassEffectID(glassID, in: glass)
             }
         }
-    }
-
-    private var card: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(FTFonts.title3Semibold)
-                    .foregroundStyle(FTColors.textPrimary)
-                Text(message)
-                    .font(FTFonts.body)
-                    .foregroundStyle(FTColors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            VStack(spacing: 10) {
-                ForEach(Array(actions.enumerated()), id: \.offset) { _, action in
-                    PillButton(title: action.title, style: action.style) { choose(action) }
-                }
-            }
-        }
-        .padding(20)
-        .frame(width: 300)
     }
 
     /// A touch of bounce opening; smooth closing.

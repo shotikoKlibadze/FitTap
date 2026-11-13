@@ -23,16 +23,9 @@ final class HomeScreenModel {
 
     private let profile = ProfileData.profile
     private let thisWeekStart: Date
-    /// Twelve weeks back, this week, three weeks ahead — about three months
-    /// to look back on and enough room to plan, oldest first.
-    private let weekStarts: [Date]
-    private static let weeksBack = 12
-    private static let weeksAhead = 3
-
     init() {
         let thisWeekStart = WeekCalendar.startOfWeek(containing: .now)
         self.thisWeekStart = thisWeekStart
-        weekStarts = (-Self.weeksBack...Self.weeksAhead).map { WeekCalendar.calendar.date(byAdding: .day, value: $0 * 7, to: thisWeekStart)! }
         currentWeek = thisWeekStart
         selectedDay = WeekCalendar.calendar.startOfDay(for: .now)
     }
@@ -60,6 +53,24 @@ final class HomeScreenModel {
     }
 
     // MARK: - Week strip
+
+    /// From the week holding the 1st of the month before the oldest logged
+    /// workout's (or this month's, with nothing logged) to the week holding
+    /// the last day of next month, oldest first — history plus a month either
+    /// side, never endless blanks.
+    private var weekStarts: [Date] {
+        let oldestLog = sessionStore.sessions
+            .filter { $0.status == .done }
+            .map(\.scheduledFor)
+            .min() ?? today
+        let oldestMonth = calendar.dateInterval(of: .month, for: min(oldestLog, today))!.start
+        let firstWeek = WeekCalendar.startOfWeek(containing: calendar.date(byAdding: .month, value: -1, to: oldestMonth)!)
+        let nextMonth = calendar.dateInterval(of: .month, for: calendar.date(byAdding: .month, value: 1, to: today)!)!
+        let lastWeek = WeekCalendar.startOfWeek(containing: calendar.date(byAdding: .day, value: -1, to: nextMonth.end)!)
+        let calendar = calendar
+        return Array(sequence(first: firstWeek) { calendar.date(byAdding: .day, value: 7, to: $0)! }
+            .prefix { $0 <= lastWeek })
+    }
 
     var weeks: [WeekStripWeek] {
         weekStarts.map { start in

@@ -2,9 +2,8 @@ import DesignSystem
 import Foundation
 
 /// One tile of the Stats balance card, ready for `CountTileButton`: a muscle
-/// group's name, how many sessions trained it in the last four weeks, and
-/// whether that's
-/// well behind the average group. "Arms" folds biceps and triceps together
+/// group's name, how many exercises trained it in the last four weeks, and
+/// whether that's well behind the average group. "Arms" folds biceps and triceps together
 /// (see `BalanceGroup`).
 struct StatsBalanceItem: Identifiable, Hashable {
     let id: String

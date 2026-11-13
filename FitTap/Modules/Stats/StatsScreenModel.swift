@@ -27,8 +27,9 @@ final class StatsScreenModel {
     /// A group is behind below this share of the average group.
     private let behindShare = 0.5
 
-    /// Every month with a session, oldest first, through next month at least
-    /// — one page each. The tab opens on this month (`currentMonthID`).
+    /// One page per month, oldest first: from the month before the oldest
+    /// logged workout's (or this month's, with nothing logged) through next
+    /// month. The tab opens on this month (`currentMonthID`).
     var calendarMonths: [StatsCalendarMonth] {
         let calendar = WeekCalendar.calendar
         let sessions = sessionStore.sessions
@@ -36,13 +37,12 @@ final class StatsScreenModel {
             calendar.dateInterval(of: .month, for: date)?.start ?? date
         }
         let thisMonth = monthStart(.now)
-        let dates = sessions.map(\.scheduledFor)
-        let first = dates.min().map(monthStart) ?? thisMonth
-        let nextMonth = calendar.date(byAdding: .month, value: 1, to: thisMonth) ?? thisMonth
-        let last = max(dates.max().map(monthStart) ?? nextMonth, nextMonth)
+        let oldestLog = sessions.filter { $0.status == .done }.map(\.scheduledFor).min().map(monthStart) ?? thisMonth
+        let first = calendar.date(byAdding: .month, value: -1, to: min(oldestLog, thisMonth)) ?? thisMonth
+        let last = calendar.date(byAdding: .month, value: 1, to: thisMonth) ?? thisMonth
 
         var months: [Date] = []
-        var month = min(first, thisMonth)
+        var month = first
         while month <= last {
             months.append(month)
             guard let next = calendar.date(byAdding: .month, value: 1, to: month) else { break }
@@ -64,7 +64,7 @@ final class StatsScreenModel {
         let end = Date.distantFuture
 
         let balanceStart = calendar.date(byAdding: .day, value: -balanceDays, to: today) ?? today
-        let counts = statsStore.sessionsPerGroup(from: balanceStart, to: end)
+        let counts = statsStore.exercisesPerGroup(from: balanceStart, to: end)
         loadBalance(counts)
 
         // Every exercise ever logged, most recently trained first; the card
@@ -121,11 +121,11 @@ final class StatsScreenModel {
             .min { (counts[$0] ?? 0) < (counts[$1] ?? 0) }
         suggestion = furthestBehind.map { group in
             let count = counts[group] ?? 0
-            let sessions = count == 1 ? "session" : "sessions"
+            let exercises = count == 1 ? "exercise" : "exercises"
             let usual = Int(average.rounded())
             return StatsSuggestionItem(
                 title: "\(group.displayName) \(group.isPlural ? "are" : "is") falling behind",
-                message: "\(count) \(sessions) in the last 4 weeks, against about \(usual) for each muscle group.",
+                message: "\(count) \(exercises) in the last 4 weeks, against about \(usual) for each muscle group.",
             )
         }
     }
