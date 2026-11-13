@@ -4,7 +4,7 @@ import Foundation
 extension ExerciseSessionLog {
     /// The weight every set used, or nil when the sets differ or carry no
     /// weight. The rules only judge these "straight" sessions for now, so
-    /// mixed-weight, bodyweight and hold sessions get no nudge.
+    /// mixed-weight, bodyweight and hold sessions get no suggestion.
     var straightWeight: Double? {
         guard let weight = sets.first?.weight, sets.allSatisfy({ $0.weight == weight }) else { return nil }
         return weight

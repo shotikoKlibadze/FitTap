@@ -6,7 +6,7 @@ import SwiftUI
 /// Sessions": one small card per session, newest first, six at a time. The
 /// exercise's name is the toolbar title.
 struct ExerciseProgressView: View {
-    let suggestion: NudgeText?
+    let suggestion: SuggestionText?
     let personalBest: PersonalBestItem?
     let sessions: [ExerciseSessionItem]
     let onTapSuggestion: () -> Void

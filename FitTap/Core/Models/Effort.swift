@@ -5,7 +5,7 @@ import Foundation
 ///
 /// It belongs to the exercise as a whole, not to a single set, and it is
 /// always optional — the user can skip it, and nothing waits on it. Later,
-/// statistics can read it for nudges like "you've been at this weight for a
+/// statistics can read it for suggestions like "you've been at this weight for a
 /// while, and it felt easy — time to go up".
 enum Effort: String, Codable, CaseIterable, Sendable {
     case easy

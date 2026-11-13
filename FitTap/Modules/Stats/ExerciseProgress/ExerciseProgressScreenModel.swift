@@ -11,7 +11,7 @@ final class ExerciseProgressScreenModel {
 
     /// What the coach suggests for the next session; nil when it has
     /// nothing to say.
-    private(set) var suggestion: NudgeText?
+    private(set) var suggestion: SuggestionText?
     private(set) var personalBest: PersonalBestItem?
     private(set) var sessions: [ExerciseSessionItem] = []
     var destination: ExerciseProgressScreenDestination?
@@ -38,7 +38,7 @@ final class ExerciseProgressScreenModel {
     func reload() {
         let logs = statsStore.history(ofExercise: exerciseID)
         sessions = logs.compactMap(sessionItem)
-        suggestion = CoachEngine().nudge(for: logs).map(NudgeWording.text)
+        suggestion = CoachEngine().suggestion(for: logs).map(SuggestionWording.text)
         let best = logs
             .compactMap { log in log.bestSet.map { (set: $0, date: log.date) } }
             .max { $0.set.rank < $1.set.rank }

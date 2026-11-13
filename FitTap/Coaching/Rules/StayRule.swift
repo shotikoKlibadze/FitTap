@@ -1,25 +1,33 @@
 import Foundation
 
-/// "You're close, stay here."
+/// "Stay at this weight."
 ///
-/// **When:** the latest session missed some sets, but no more than half of
-/// them. Examples: 4 sets with the last one marked failed, or with the last
-/// two marked failed.
+/// **When:** the latest session missed any sets. How many decides the
+/// words, not the advice:
 ///
-/// **Why:** finishing most of the sets and missing the rest means the
-/// weight is right at the limit, which is where it should be; the next step
-/// is finishing those sets, not changing the load.
+/// - up to half the sets missed (the last one or two of four): "you
+///   finished most of your sets" (`.stay`);
+/// - more than half missed (three or all of four): "stay until you finish
+///   every set, or go down a step for a session or two"
+///   (`.stayUntilClean`).
 ///
-/// **Source:** common coaching practice; not yet checked against a source.
+/// **Why:** missed sets mean the weight is at or past the limit for now.
+/// Whether it was a near miss or a rough session, the step is the same:
+/// keep the weight and come back to it until every set is done, instead of
+/// going up. After a heavy miss, one step down for a session or two is
+/// offered as the other way back.
+///
+/// **Source:** common coaching practice for the near miss; staying after a
+/// heavy miss is our own rule. Neither is checked against a source yet.
 ///
 /// > Important: A failed set only says "missed". Its reps may still be the
 /// > planned number, so this rule counts missed sets and never asks how many
 /// > reps short they were.
 struct StayRule: CoachRule {
-    func nudge(for history: [ExerciseSessionLog]) -> Nudge? {
+    func suggestion(for history: [ExerciseSessionLog]) -> Suggestion? {
         guard let latest = history.first, latest.straightWeight != nil else { return nil }
         let missed = latest.missedSetCount
-        guard missed > 0, missed * 2 <= latest.sets.count else { return nil }
-        return .stay
+        guard missed > 0 else { return nil }
+        return missed * 2 <= latest.sets.count ? .stay : .stayUntilClean
     }
 }

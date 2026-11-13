@@ -12,7 +12,7 @@ import Foundation
 /// **Source:** our own reading of the effort rating; not yet checked
 /// against a source.
 struct HardButDoneRule: CoachRule {
-    func nudge(for history: [ExerciseSessionLog]) -> Nudge? {
+    func suggestion(for history: [ExerciseSessionLog]) -> Suggestion? {
         guard let latest = history.first, latest.isClean, latest.effort == .hard else { return nil }
         return .repeatUntilEasier
     }
