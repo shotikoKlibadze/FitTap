@@ -22,6 +22,9 @@ final class WorkoutSessionScreenModel {
     private(set) var title = ""
     private(set) var color: WorkoutColor = .green
     private(set) var startedAt = Date.now
+    /// The last time each exercise was done before this session, by
+    /// exercise id. Exercises done for the first time have none.
+    private(set) var previous: [UUID: PreviousLog] = [:]
     private var type: WorkoutType = .strength
 
     private let sessionID: UUID
@@ -34,6 +37,8 @@ final class WorkoutSessionScreenModel {
     @Injected(\.exerciseStore) private var exerciseStore
     @ObservationIgnored
     @Injected(\.workoutStore) private var workoutStore
+    @ObservationIgnored
+    @Injected(\.statsStore) private var statsStore
 
     init(sessionID: UUID, startedFresh: Bool) {
         self.sessionID = sessionID
@@ -44,6 +49,23 @@ final class WorkoutSessionScreenModel {
         type = session.workout.type
         startedAt = session.startedAt ?? .now
         exercises = session.workout.exercises
+        loadPrevious()
+    }
+
+    /// Reads the last time each exercise was done before this session, for
+    /// the cards' "Previous" line. Once at the start and again when
+    /// exercises are added — not on every check.
+    private func loadPrevious() {
+        let catalog = catalog
+        var result: [UUID: PreviousLog] = [:]
+        for exerciseID in Set(exercises.map(\.exerciseID)) {
+            guard
+                let exercise = catalog[exerciseID],
+                let log = statsStore.history(ofExercise: exerciseID).first(where: { $0.sessionID != sessionID })
+            else { continue }
+            result[exerciseID] = PreviousLog(log, exercise: exercise)
+        }
+        previous = result
     }
 
     /// Catalog lookup for the cards — exercises are referenced by id.
@@ -107,6 +129,7 @@ final class WorkoutSessionScreenModel {
     /// Each picked exercise arrives with a starter set (see `add(_:from:)`).
     func addExercises(_ ids: [UUID]) {
         exercises.add(ids, from: catalog)
+        loadPrevious()
     }
 
     /// Drops the exercise, logged sets and all, and renumbers the rest.

@@ -23,6 +23,8 @@ public enum FTIcons {
     /// The ⓘ beside something the app noticed — a suggestion's marker.
     public static let info = Image(systemName: "info.circle")
     public static let wandAndSparkles = Image(systemName: "wand.and.sparkles.inverse")
+    /// The app's mark — a dumbbell, as on the onboarding welcome.
+    public static let dumbbell = Image(systemName: "dumbbell.fill")
 }
 
 #if DEBUG
@@ -45,6 +47,7 @@ private let ftIconRows: [FTIconRow] = [
     FTIconRow(name: "chevronDown", image: FTIcons.chevronDown),
     FTIconRow(name: "chevronUp", image: FTIcons.chevronUp),
     FTIconRow(name: "trash", image: FTIcons.trash),
+    FTIconRow(name: "dumbbell", image: FTIcons.dumbbell),
 ]
 
 private struct FTIconsPreviewHost: View {

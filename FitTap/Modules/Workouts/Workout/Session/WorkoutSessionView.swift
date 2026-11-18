@@ -27,6 +27,8 @@ struct WorkoutSessionView: View {
     let startedAt: Date
     @Binding var exercises: [WorkoutExercise]
     let catalog: [UUID: Exercise]
+    /// The last time each exercise was done, by exercise id.
+    let previous: [UUID: PreviousLog]
     /// (workout exercise id, set id)
     let onTapReps: (UUID, UUID) -> Void
     let onTapWeight: (UUID, UUID) -> Void
@@ -66,6 +68,15 @@ struct WorkoutSessionView: View {
 
     /// The summary card's height, so the cards know where its top is.
     @State private var summaryHeight: CGFloat = 0
+    /// Each session card's height by workout exercise id, so the list can
+    /// leave room under the last one.
+    @State private var cardHeights: [UUID: CGFloat] = [:]
+    private let cardSpacing: CGFloat = 12
+
+    private var lastCardHeight: CGFloat {
+        exercises.last.flatMap { cardHeights[$0.id] } ?? 0
+    }
+
     /// Bumped when a drag to reorder lifts a card — one tap of haptics.
     @State private var reorderLift = 0
     /// The drag session already announced, so its later updates stay quiet.
@@ -74,7 +85,7 @@ struct WorkoutSessionView: View {
     var body: some View {
         ScrollViewReader { scroller in
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: cardSpacing) {
                     if isEditing {
                         Text("Swipe to delete · hold to reorder")
                             .font(FTFonts.footnote)
@@ -85,6 +96,11 @@ struct WorkoutSessionView: View {
                             .transition(.opacity)
                     } else {
                         sessionList(scroller: scroller)
+                        // An invisible card the size of the last one, so
+                        // the last card can scroll up as far as the cards
+                        // before it.
+                        Color.clear
+                            .frame(height: lastCardHeight)
                     }
                 }
                 .animation(.smooth(duration: 0.3), value: exercises.map(\.id))
@@ -151,6 +167,7 @@ struct WorkoutSessionView: View {
                 SessionExerciseCard(
                     exercise: exercise,
                     workoutExercise: $workoutExercise,
+                    previous: previous[workoutExercise.exerciseID],
                     onTapReps: { setID in onTapReps(workoutExercise.id, setID) },
                     onTapWeight: { setID in onTapWeight(workoutExercise.id, setID) },
                     onTapDuration: { onTapDuration(workoutExercise.id) },
@@ -158,6 +175,9 @@ struct WorkoutSessionView: View {
                     onRated: { scrollPast(workoutExercise.id, with: scroller) },
                 )
                 .id(workoutExercise.id)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                    cardHeights[workoutExercise.id] = height
+                }
                 .modifier(StackBehindSummary(summaryTop: summaryTop))
             }
         }
@@ -299,6 +319,7 @@ private struct WorkoutSessionViewPreviewHost: View {
             startedAt: .now.addingTimeInterval(-(18 * 60 + 42)),
             exercises: $exercises,
             catalog: catalog,
+            previous: [exercises[0].exerciseID: PreviousLog(summary: "4 × 8 · 10 kg /side", failed: true)],
             onTapReps: { _, _ in },
             onTapWeight: { _, _ in },
             onTapDuration: { _ in },

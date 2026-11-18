@@ -29,6 +29,7 @@ struct WorkoutSessionScreen: View {
             startedAt: screenModel.startedAt,
             exercises: $screenModel.exercises,
             catalog: screenModel.catalog,
+            previous: screenModel.previous,
             onTapReps: screenModel.didTapReps,
             onTapWeight: screenModel.didTapWeight,
             onTapDuration: screenModel.didTapDuration,

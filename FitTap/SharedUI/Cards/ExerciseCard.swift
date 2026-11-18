@@ -34,8 +34,15 @@ struct ExerciseCard: View {
     /// In `.session`, shows "+ Add Set" too — fixing a finished workout,
     /// where a set may have been left out. `.edit` always shows it.
     var canAddSets = false
-    /// e.g. "Previous best 20 kg /side × 10"; nil hides the line.
-    var previousBest: String?
+    /// A demo drives the card from outside (onboarding): its checks follow
+    /// the sets and `openChoicesSetID` without haptics, and a set turning
+    /// done sends the ripple a tap would.
+    var isScripted = false
+    /// Scripted only: the set whose check has its ✓ / ✕ choices open.
+    var openChoicesSetID: UUID?
+    /// The last time it was done, shown under the name as "Previous 4 × 8 ·
+    /// 10 kg /side" (plus a red "Failed"); nil hides the line.
+    var previous: PreviousLog?
     var unit: WeightUnit = .kg
     /// Reps / weight pill tapped for the set with this id — the parent opens
     /// the matching picker and writes the chosen value back through the binding.
@@ -84,6 +91,12 @@ struct ExerciseCard: View {
         .elevatedSurface(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .coordinateSpace(.named(Self.cardSpace))
         .rippleEffect(at: rippleOrigin, trigger: rippleCount)
+        .onChange(of: doneSetIDs) { old, new in
+            // A tap ripples from `setStatus`; a script has no tap.
+            guard isScripted, let id = new.subtracting(old).first, let frame = checkFrames[id] else { return }
+            rippleOrigin = CGPoint(x: frame.midX, y: frame.midY)
+            rippleCount += 1
+        }
     }
 
     private var isEditing: Bool { mode == .edit }
@@ -100,8 +113,12 @@ struct ExerciseCard: View {
                 Text(exercise.name)
                     .font(FTFonts.title3Semibold)
                     .foregroundStyle(FTColors.textPrimary)
-                if let previousBest {
-                    Text(previousBest)
+                if let previous {
+                    // "Previous 4 × 8 · 10 kg /side", with a red "Failed"
+                    // when a set didn't go.
+                    let failed = Text(previous.failed ? " · Failed" : "")
+                        .foregroundStyle(FTColors.red)
+                    Text("Previous \(previous.summary)\(failed)")
                         .font(FTFonts.footnote)
                         .foregroundStyle(FTColors.textSecondary)
                 }
@@ -137,7 +154,10 @@ struct ExerciseCard: View {
                 removeButton { removeSet(set.id) }
                     .transition(.scale(scale: 0.5).combined(with: .opacity))
             case .session:
-                CompletionButton(status: checkStatus(set)) { setStatus(set.id, $0) }
+                CompletionButton(
+                    status: checkStatus(set),
+                    scriptedChoicesOpen: isScripted ? set.id == openChoicesSetID : nil,
+                ) { setStatus(set.id, $0) }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.cardSpace)) } action: {
                         checkFrames[set.id] = $0
                     }
@@ -299,6 +319,10 @@ struct ExerciseCard: View {
 
     // MARK: - Working out
 
+    private var doneSetIDs: Set<UUID> {
+        Set(workoutExercise.sets.filter { checkStatus($0) == .done }.map(\.id))
+    }
+
     /// Failed beats done: a failed set is logged too, with the flag on top.
     private func checkStatus(_ set: SetEntry) -> CompletionButton.Status {
         guard set.loggedAt != nil else { return .open }
@@ -374,7 +398,7 @@ private struct ExerciseCardPreviewHost: View {
                     exercise: .sample,
                     workoutExercise: $bench,
                     mode: mode,
-                    previousBest: "Previous best 20 kg /side × 10",
+                    previous: PreviousLog(summary: "4 × 8 · 10 kg /side", failed: true),
                     // Stand-ins for the pickers: each tap bumps the value.
                     onTapReps: { id in
                         guard let index = bench.sets.firstIndex(where: { $0.id == id }) else { return }

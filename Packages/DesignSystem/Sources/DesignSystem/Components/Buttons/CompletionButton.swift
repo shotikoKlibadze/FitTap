@@ -24,11 +24,23 @@ public struct CompletionButton: View {
     }
 
     let status: Status
+    /// Non-nil makes the button a puppet for a demo: the choices are open
+    /// exactly when it's true, and it stays silent — no haptics.
+    let scriptedChoicesOpen: Bool?
     let onChange: (Status) -> Void
 
-    public init(status: Status, onChange: @escaping (Status) -> Void) {
+    public init(status: Status, scriptedChoicesOpen: Bool? = nil, onChange: @escaping (Status) -> Void) {
         self.status = status
+        self.scriptedChoicesOpen = scriptedChoicesOpen
         self.onChange = onChange
+    }
+
+    private var showsChoices: Bool {
+        scriptedChoicesOpen ?? isExpanded
+    }
+
+    private var isScripted: Bool {
+        scriptedChoicesOpen != nil
     }
 
     public static let diameter: CGFloat = 36
@@ -52,7 +64,7 @@ public struct CompletionButton: View {
         Color.clear
             .frame(width: Self.diameter, height: Self.diameter)
             .overlay(alignment: .bottom) {
-                if isExpanded {
+                if showsChoices {
                     choices
                         // Its ✕ sits exactly where the button was.
                         .offset(y: capsulePadding)
@@ -62,7 +74,7 @@ public struct CompletionButton: View {
                         .transition(.scale(scale: 0.5, anchor: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.smooth(duration: 0.25), value: isExpanded)
+            .animation(.smooth(duration: 0.25), value: showsChoices)
             .animation(.smooth(duration: 0.2), value: status)
             .onChange(of: status) { isExpanded = false }
             .task(id: isExpanded) {
@@ -70,8 +82,8 @@ public struct CompletionButton: View {
                 try? await Task.sleep(for: autoCloseDelay)
                 isExpanded = false
             }
-            .sensoryFeedback(.success, trigger: status) { _, new in new == .done }
-            .sensoryFeedback(.warning, trigger: status) { _, new in new == .failed }
+            .sensoryFeedback(.success, trigger: status) { _, new in new == .done && !isScripted }
+            .sensoryFeedback(.warning, trigger: status) { _, new in new == .failed && !isScripted }
             .sensoryFeedback(.impact(weight: .light), trigger: isExpanded) { _, new in new }
     }
 

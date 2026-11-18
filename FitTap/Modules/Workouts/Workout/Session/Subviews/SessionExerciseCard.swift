@@ -8,6 +8,8 @@ import SwiftUI
 struct SessionExerciseCard: View {
     let exercise: Exercise
     @Binding var workoutExercise: WorkoutExercise
+    /// The last time it was done; nil the first time.
+    var previous: PreviousLog?
     /// Set id of the reps / weight pill tapped.
     let onTapReps: (UUID) -> Void
     let onTapWeight: (UUID) -> Void
@@ -22,6 +24,7 @@ struct SessionExerciseCard: View {
                 exercise: exercise,
                 workoutExercise: $workoutExercise,
                 mode: .session,
+                previous: previous,
                 onTapReps: onTapReps,
                 onTapWeight: onTapWeight,
                 onTapDuration: onTapDuration,

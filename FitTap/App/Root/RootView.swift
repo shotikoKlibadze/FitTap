@@ -5,6 +5,20 @@ struct RootView: View {
     @State private var viewModel = RootViewModel()
 
     var body: some View {
+        ZStack {
+            if viewModel.showsOnboarding {
+                ManagedNavigationStack {
+                    OnboardingScreen(onFinish: finishOnboarding)
+                }
+                .transition(.opacity)
+            } else {
+                tabs
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    private var tabs: some View {
         TabView(selection: $viewModel.selectedTab) {
             Tab("Home", systemImage: "house", value: AppTab.home) {
                 ManagedNavigationStack { HomeScreen() }
@@ -16,5 +30,9 @@ struct RootView: View {
                 ManagedNavigationStack { StatsScreen() }
             }
         }
+    }
+
+    private func finishOnboarding() {
+        withAnimation(.smooth(duration: 0.4)) { viewModel.finishOnboarding() }
     }
 }
