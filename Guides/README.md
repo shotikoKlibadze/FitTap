@@ -9,6 +9,7 @@ Ask Claude to "open the SwiftData guide" (or any name below), or open the link y
 | Guide | Link | Covers | Source | Updated |
 |---|---|---|---|---|
 | SwiftData Rules | https://claude.ai/artifact/GbcaYPbSCSQY7AoLoT2Uth | How the app saves data: the layers, who may touch the database, the session lifecycle, how Stats counts, why each choice was made, build order | [SwiftDataRules.html](SwiftDataRules.html) · plan: [SwiftDataPlanning.md](../Planning/SwiftDataPlanning.md) | 2026-11-03 |
+| Coaching Guide | https://claude.ai/artifact/ViomeVRQHVRC7XkEPenoWA | How a logged session becomes the suggestion card: the seven rules, reps or weight, what the language model is given and writes, the streamed card, the fallback, how to test a wording change | [CoachingGuide.html](CoachingGuide.html) · rules: [CoachingRules.md](../FitTap/Coaching/CoachingRules.md) | 2026-11-17 |
 
 ## When a guide is made or updated
 

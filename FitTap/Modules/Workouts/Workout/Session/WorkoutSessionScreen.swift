@@ -49,13 +49,13 @@ struct WorkoutSessionScreen: View {
         .appAlert(
             isPresented: $isAskingToUpdateWorkout,
             title: "Update \(screenModel.title)?",
-            message: "You changed reps, weights or exercises. Keep them for this session only, or for every \(screenModel.title) too?",
+            message: "You changed reps, weights or exercises. Keep them for this session only, or for this session and \(screenModel.title) too?",
             actions: [
-                AppAlertAction("This Session Only") {
+                AppAlertAction("This Session") {
                     screenModel.finish()
                     close()
                 },
-                AppAlertAction("Update \(screenModel.title)") {
+                AppAlertAction("This Session + \(screenModel.title)") {
                     screenModel.finish(updatingWorkout: true)
                     close()
                 },

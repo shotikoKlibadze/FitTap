@@ -99,8 +99,12 @@ struct WorkoutSessionView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             header
         }
+        // Editing, the bottom button ends editing instead of the workout.
         .bottomActionBar {
-            GlassPillButton(title: "Finish Workout", action: onFinish)
+            GlassPillButton(title: isEditing ? "Done" : "Finish Workout") {
+                guard isEditing else { return onFinish() }
+                withAnimation(.smooth(duration: 0.3)) { isEditing = false }
+            }
         }
         // Dims everything — header and Finish included — behind the open card.
         .overlay {

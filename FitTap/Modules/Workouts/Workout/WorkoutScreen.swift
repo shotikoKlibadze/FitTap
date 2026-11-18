@@ -62,6 +62,7 @@ struct WorkoutScreen: View {
             onTapSave: handleSave,
             onTapStart: screenModel.didTapStartWorkout,
             onTapPlanDay: handlePlanDay,
+            showsDeleteButton: !screenModel.isNew,
             onTapDelete: handleDelete,
             onSavePlan: screenModel.savePlan,
         )
@@ -105,20 +106,20 @@ struct WorkoutScreen: View {
     private var saveScopeMessage: String {
         let name = screenModel.generalWorkoutName
         return screenModel.isEditingDay
-            ? "Change only this day, every \(name), or keep \(name) as it is and save this as a new workout."
+            ? "Change only this day, this day and \(name) too, or keep \(name) as it is and save this as a new workout."
             : "Change \(name) — the days you've planned follow it — or keep it as it is and save this as a new workout."
     }
 
-    /// A planned day: this day, every session of the workout, or new. The
+    /// A planned day: this day, this day and the workout, or new. The
     /// workout on its own: update it, or new.
     private var saveScopeActions: [AppAlertAction] {
         let name = screenModel.generalWorkoutName
         var actions: [AppAlertAction] = []
         if screenModel.isEditingDay {
-            actions.append(AppAlertAction("This Day Only") {
+            actions.append(AppAlertAction("This Day") {
                 withAnimation(modeChange) { screenModel.save() }
             })
-            actions.append(AppAlertAction("Every \(name)") {
+            actions.append(AppAlertAction("This Day + \(name)") {
                 withAnimation(modeChange) { screenModel.save(everywhere: true) }
             })
         } else {
@@ -201,11 +202,15 @@ struct WorkoutScreen: View {
     }
 
     /// Editing an existing workout asks first where the change goes (see
-    /// `saveScopeActions`).
+    /// `saveScopeActions`); with nothing changed, "Done" just goes back to
+    /// reading.
     private func handleSave() {
         if screenModel.isNew {
             screenModel.save()
             return close()
+        }
+        guard screenModel.hasUnsavedChanges else {
+            return withAnimation(modeChange) { screenModel.cancelEditing() }
         }
         if screenModel.asksSaveScope {
             isShowingSaveScopeAlert = true

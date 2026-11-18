@@ -10,6 +10,7 @@ final class StatsScreenModel {
     @ObservationIgnored @Injected(\.workoutSessionStore) private var sessionStore
     @ObservationIgnored @Injected(\.statsStore) private var statsStore
     @ObservationIgnored @Injected(\.exerciseStore) private var exerciseStore
+    @ObservationIgnored @Injected(\.coachAI) private var coachAI
 
     /// The one suggestion the tab leads with: the muscle group furthest
     /// behind, if any is. Nil hides the section.
@@ -76,6 +77,10 @@ final class StatsScreenModel {
         let monthStart = calendar.dateInterval(of: .month, for: now)?.start ?? today
         cardioWeekMinutes = statsStore.cardioMinutes(from: weekStart, to: end)
         cardioMonthMinutes = statsStore.cardioMinutes(from: monthStart, to: end)
+
+        // Every exercise opened from here leads with a card the language
+        // model writes, so load the model now and the card starts sooner.
+        coachAI.prewarm()
     }
 
     // MARK: - Intents

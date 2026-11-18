@@ -50,6 +50,23 @@ public enum FTGradients {
         fadeTop(to: FTColors.sheetSurface)
     }
 
+    /// The band of light that sweeps across placeholder bars while text is
+    /// loading: nothing at both edges, the text's own colour at part
+    /// strength in the middle. It is drawn over the faint bars and moved
+    /// left to right, so they seem to catch the light as it passes.
+    /// - Parameter color: the colour of the text the bars stand for.
+    public static func shimmer(of color: Color) -> LinearGradient {
+        LinearGradient(
+            stops: [
+                Gradient.Stop(color: color.opacity(0), location: 0.0),
+                Gradient.Stop(color: color.opacity(0.4), location: 0.5),
+                Gradient.Stop(color: color.opacity(0), location: 1.0),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing,
+        )
+    }
+
     private static func fadeTop(to color: Color) -> LinearGradient {
         LinearGradient(
             stops: [

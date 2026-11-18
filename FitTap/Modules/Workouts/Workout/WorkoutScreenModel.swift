@@ -251,13 +251,13 @@ final class WorkoutScreenModel {
 
     /// The bottom button's word while editing.
     var saveTitle: String {
-        isNew ? "Create workout" : "Save workout"
+        isNew ? "Create workout" : "Done"
     }
 
-    /// One exercise is enough; a blank name gets a sensible default. An
-    /// existing workout also needs a change — saving it as it was does nothing.
+    /// One exercise is enough; a blank name gets a sensible default. "Done"
+    /// on an unchanged workout just goes back to reading.
     var canSave: Bool {
-        !exercises.isEmpty && (isNew || hasUnsavedChanges)
+        !exercises.isEmpty
     }
 
     /// Anything the user entered that leaving would throw away. New: anything
@@ -351,7 +351,7 @@ final class WorkoutScreenModel {
     /// Keeps the workout as it was and saves the edits as a new workout on
     /// the Workouts tab — "Shoulder Day 2" when the name wasn't changed.
     /// Editing a planned day, that day also takes the edits, for itself
-    /// only, as with "This Day Only"; it stays a day of the original
+    /// only, as with "This Day"; it stays a day of the original
     /// workout. On its own, the workout keeps its stored values and the
     /// Screen closes.
     func saveAsNew() {

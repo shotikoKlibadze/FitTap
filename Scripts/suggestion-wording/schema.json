@@ -1,0 +1,24 @@
+{
+ "required": [
+  "title",
+  "message"
+ ],
+ "title": "SuggestionCopy",
+ "x-order": [
+  "title",
+  "message"
+ ],
+ "additionalProperties": false,
+ "type": "object",
+ "properties": {
+  "title": {
+   "type": "string",
+   "description": "What to do, two to four words: the action and the weight only",
+   "pattern": "\\w+( (\\w|\\.)+){1,3}"
+  },
+  "message": {
+   "type": "string",
+   "description": "One plain sentence, at most twenty words: how long or what comes next, and why. It never repeats the title"
+  }
+ }
+}

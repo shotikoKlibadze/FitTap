@@ -1,0 +1,316 @@
+<title>Coaching Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one calm reading column; each step from logged session to card owns a colour, and that colour follows it through every section. */
+:root {
+  --bg: #f6f5f0;
+  --surface: #ffffff;
+  --ink: #1d2420;
+  --muted: #5b655f;
+  --line: #e2e1d9;
+
+  /* one colour per step */
+  --history: #d8573f;   --history-soft: #fbe5e0;
+  --rules: #2e8a5a;     --rules-soft: #e1f2e8;
+  --words: #b8860b;     --words-soft: #fbf0d0;
+  --card: #2f7fd1;      --card-soft: #e3effb;
+  --cloud: #7b4fd6;     --cloud-soft: #eee7fb;
+
+  --display: "Bricolage Grotesque", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --body: "Atkinson Hyperlegible", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121614; --surface: #1b211e; --ink: #edf1ee; --muted: #a2ada6; --line: #2c3430;
+    --history: #f08068; --history-soft: #331c17;
+    --rules: #5cc58c;   --rules-soft: #15291f;
+    --words: #e9c45a;   --words-soft: #2b2510;
+    --card: #6fb0f2;    --card-soft: #16283a;
+    --cloud: #a98af0;   --cloud-soft: #241c38;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121614; --surface: #1b211e; --ink: #edf1ee; --muted: #a2ada6; --line: #2c3430;
+  --history: #f08068; --history-soft: #331c17;
+  --rules: #5cc58c;   --rules-soft: #15291f;
+  --words: #e9c45a;   --words-soft: #2b2510;
+  --card: #6fb0f2;    --card-soft: #16283a;
+  --cloud: #a98af0;   --cloud-soft: #241c38;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.page { max-width: 780px; margin: 0 auto; padding-block: 48px 72px; display: grid; gap: 56px; }
+
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.4rem, 7vw, 3.6rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 4vw, 1.9rem); font-weight: 800; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+code { font: 500 0.86em var(--mono); background: var(--line); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); }
+.eyebrow { font: 700 0.78rem var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 18px; }
+.lead { font-size: 1.15rem; }
+
+header { display: grid; gap: 16px; }
+.swatches { display: flex; gap: 6px; }
+.swatches span { height: 10px; flex: 1; border-radius: 10px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font: 700 0.8rem var(--body); padding: 4px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.pill.built { background: var(--rules-soft); border-color: transparent; }
+.pill.later { background: var(--cloud-soft); border-color: transparent; }
+
+/* the path from session to card */
+.stack { display: grid; }
+.layer { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; padding: 16px 18px; border-radius: 14px; }
+.layer .name { font: 800 1.05rem var(--display); }
+.layer .what { min-width: 0; }
+.layer.history { background: var(--history-soft); } .layer.history .name { color: var(--history); }
+.layer.rules { background: var(--rules-soft); } .layer.rules .name { color: var(--rules); }
+.layer.words { background: var(--words-soft); } .layer.words .name { color: var(--words); }
+.layer.card { background: var(--card-soft); } .layer.card .name { color: var(--card); }
+.layer.cloud { background: var(--cloud-soft); outline: 2px dashed var(--cloud); outline-offset: -2px; } .layer.cloud .name { color: var(--cloud); }
+.arrow { text-align: center; color: var(--muted); font: 600 0.82rem var(--body); padding: 6px 0; }
+.arrow b { font-size: 1.1rem; color: var(--ink); }
+
+.rule-box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 10px; }
+.rule-box ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+/* tables */
+.table { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 16px; overflow-x: auto; }
+.table table { border-collapse: collapse; width: 100%; min-width: 520px; }
+.table th { text-align: left; font: 700 0.76rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 12px 10px 8px; }
+.table td { padding: 10px; border-top: 1px solid var(--line); vertical-align: top; }
+.table td.n { font: 800 1rem var(--display); color: var(--rules); width: 34px; font-variant-numeric: tabular-nums; }
+.table .say { color: var(--muted); font-size: 0.95rem; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+
+/* the prompt as the model sees it */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.sheet h3 { color: var(--words); }
+.sheet.out h3 { color: var(--card); }
+.sheet pre { margin: 0; font: 500 0.86rem/1.7 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sheet pre b { color: var(--words); font-weight: 500; }
+.sheet.out pre b { color: var(--card); }
+
+/* decisions */
+.facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.fact .why { color: var(--muted); font-size: 0.95rem; }
+
+/* timeline */
+.timeline { display: grid; }
+.step { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 14px 0; border-top: 1px dashed var(--line); }
+.step:first-child { border-top: 0; }
+.step .when { font: 800 1rem var(--display); }
+
+.cmd { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; font: 500 0.92rem var(--mono); overflow-x: auto; white-space: nowrap; }
+
+.todo { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.todo li { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.todo .tag { font: 700 0.72rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.todo .next .tag { color: var(--cloud); }
+
+footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); padding-top: 20px; }
+
+@media (max-width: 620px) {
+  .layer, .step { grid-template-columns: 1fr; gap: 4px; }
+  .pair, .facts { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="page">
+
+<header>
+  <div class="swatches">
+    <span style="background:var(--history)"></span><span style="background:var(--rules)"></span><span style="background:var(--words)"></span><span style="background:var(--card)"></span><span style="background:var(--cloud)"></span>
+  </div>
+  <p class="eyebrow">FitTap · how the coach works</p>
+  <h1>Coaching Guide</h1>
+  <p class="lead">How a logged session turns into the suggestion card at the top of an exercise's progress screen: who decides, who writes the words, and what happens when the language model can't.</p>
+  <div class="status">
+    <span class="pill built">Built: 7 rules</span>
+    <span class="pill built">Built: card written live by the on-device model</span>
+    <span class="pill later">Later: Analysis screen on the cloud model</span>
+  </div>
+</header>
+
+<section>
+  <p class="eyebrow">The big picture</p>
+  <h2>Swift decides. The model only talks.</h2>
+  <p>The advice never comes from the language model. Plain Swift rules read your history and pick one suggestion. The model's only job is to put that decision into a title and one sentence.</p>
+  <div class="stack">
+    <div class="layer history"><div class="name">History</div><div class="what">Every session logged for this exercise, newest first. Comes from the Stats store.</div></div>
+    <div class="arrow"><b>↓</b> read by</div>
+    <div class="layer rules"><div class="name">Rules</div><div class="what"><code>CoachEngine</code> asks seven rules in order. The first one with something to say wins. The answer is a <code>Suggestion</code>, such as "hold this new weight", or nothing.</div></div>
+    <div class="arrow"><b>↓</b> handed to</div>
+    <div class="layer words"><div class="name">Words</div><div class="what"><code>CoachAI</code> has the on-device model write a title and a sentence for that suggestion. If the model can't, it gives the hand-written text instead.</div></div>
+    <div class="arrow"><b>↓</b> streamed to</div>
+    <div class="layer card"><div class="name">Card</div><div class="what">The gold card at the top of the progress screen. Its text appears a few words at a time while the model writes.</div></div>
+    <div class="arrow"><b>↓</b> a tap opens</div>
+    <div class="layer cloud"><div class="name">Analysis</div><div class="what">A deeper look at the exercise, written by Apple's larger cloud model. Today the screen says "Coming soon".</div></div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Hard rules</p>
+  <h2>What must stay true</h2>
+  <div class="rule-box">
+    <ul>
+      <li><b>The model never decides.</b> It gets a decision that is already made. A wrong word is annoying; wrong advice is harmful, so advice stays in code that can be read and checked.</li>
+      <li><b>The card is never empty and never wrong about the advice.</b> No model, a refusal or a broken answer all end with the hand-written text for the same suggestion.</li>
+      <li><b>Screens never touch the model.</b> They ask <code>CoachAI</code> for words. Which model, which instructions and what happens on failure live in one place.</li>
+      <li><b>One model session per card, then thrown away.</b> A session remembers what was said in it, so a shared one would let the last card's wording leak into the next and would fill the small on-device memory.</li>
+      <li><b>A failed set only means "missed".</b> The rules never read the reps on a failed set, because people often mark a set failed without changing the number.</li>
+      <li><b>No suggestion before three sessions.</b> Two sessions aren't enough to see a pattern.</li>
+      <li><b>Rest is not measured.</b> The card may say "try a longer rest", but the app doesn't time it. That belongs to people more serious than FitTap's user.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">The rules</p>
+  <h2>Seven rules, asked in this order</h2>
+  <p>"Clean" means every set was finished. The words shown are the hand-written fallback; the model writes its own version of the same advice.</p>
+  <div class="table">
+    <table>
+      <tr><th></th><th>When</th><th>What the card says</th></tr>
+      <tr><td class="n">1</td><td>The latest session had missed sets.<br><span class="say">Half or fewer missed, or more than half.</span></td><td><b>Stay at this weight.</b><br><span class="say">Few missed: finish them all first, try a longer rest. Most missed: stay until you finish every set, or go down a step for a session or two.</span></td></tr>
+      <tr><td class="n">2</td><td>Every set done, but rated hard.</td><td><b>Done, but it was hard.</b><br><span class="say">Repeat until it feels medium, or add weight if you feel ready.</span></td></tr>
+      <tr><td class="n">3</td><td>Every set done at a heavier weight than last time.</td><td><b>New weight achieved.</b><br><span class="say">Hold it for one or two more sessions before moving up.</span></td></tr>
+      <tr><td class="n">4</td><td>Every set done at a weight where sets were missed last time.</td><td><b>You got all your sets.</b><br><span class="say">Stay one or two more sessions and let your body get used to it.</span></td></tr>
+      <tr><td class="n">5</td><td>Three clean sessions at the same weight, reps rising each time (4×8, 4×9, 4×10).</td><td><b>Try heavier.</b><br><span class="say">Your reps keep going up. Go up a step.</span></td></tr>
+      <tr><td class="n">6</td><td>Two clean sessions in a row, same weight and reps, at your top reps.</td><td><b>Time to add weight.</b><br><span class="say">Go up one step; fewer reps is fine.</span></td></tr>
+      <tr><td class="n">7</td><td>Two clean sessions in a row, same weight and reps, below your top reps.</td><td><b>Time to add reps.</b><br><span class="say">Try one more rep per set.</span></td></tr>
+    </table>
+  </div>
+  <p class="muted">Rules 6 and 7 wait for two sessions on purpose. That is the "2-for-2" rule coaches use: one good session can be a good day, two is a pattern. The full reasoning and the research behind each rule are in <code>FitTap/Coaching/CoachingRules.md</code>.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Reps or weight</p>
+  <h2>How the coach picks between them</h2>
+  <p>It compares your reps now with your <b>top reps</b>: the most reps per set you finished cleanly in the last ten sessions of that exercise. Below your top reps, add reps. At your top reps, add weight. The app never sets a rep target itself; it learns your range from what you log.</p>
+  <div class="table">
+    <table>
+      <tr><th>Two sessions in a row of</th><th>Top reps</th><th>Suggestion</th></tr>
+      <tr><td>20 kg, 4×8</td><td>8</td><td>Add weight</td></tr>
+      <tr><td>22.5 kg, 4×6</td><td>8, from the 20 kg sessions</td><td>Add reps</td></tr>
+      <tr><td>22.5 kg, 4×7</td><td>8</td><td>Add reps</td></tr>
+      <tr><td>22.5 kg, 4×8</td><td>8</td><td>Add weight</td></tr>
+    </table>
+  </div>
+  <p class="muted">Someone who always trains 4×8 will only ever be told to add weight, because 8 is the only number the app has seen.</p>
+</section>
+
+<section>
+  <p class="eyebrow">The words</p>
+  <h2>What the model is given, and what it writes</h2>
+  <p>The model gets three short lines. The first becomes the title, the second becomes the message, and the third is the reason the message may end with.</p>
+  <div class="pair">
+    <div class="sheet">
+      <h3>Goes in</h3>
+      <pre><b>Action:</b> Hold 32.5 kg
+<b>Detail:</b> Give it one or two more sessions before moving up.
+<b>Why:</b> One full session shows it can be done, not that it is settled.</pre>
+    </div>
+    <div class="sheet out">
+      <h3>Comes out</h3>
+      <pre><b>Title:</b> Hold 32.5 kg
+<b>Message:</b> Give it one or two more sessions before moving up, since one full session shows it can be done.</pre>
+    </div>
+  </div>
+  <p>This shape was reached by testing all eight suggestions many times. Each choice below fixed a fault that showed up in those tests.</p>
+  <div class="facts">
+    <div class="fact"><h3>Title and message arrive as separate lines</h3><p class="why">Given one whole sentence, the model split it wrongly: it merged two options into one, or put the advice in the wrong half.</p></div>
+    <div class="fact"><h3>The model sees no session history</h3><p class="why">With sets and reps in front of it, it made up numbers ("do 4 sets of 2"). Now the weight is the only number it gets.</p></div>
+    <div class="fact"><h3>The example is about running</h3><p class="why">With a lifting example, the model copied the example's sentence word for word into real cards.</p></div>
+    <div class="fact"><h3>"Write numbers as digits"</h3><p class="why">Without that line the title came out as "Stay at twenty twopointfive".</p></div>
+    <div class="fact"><h3>The title length is forced, not asked for</h3><p class="why">A pattern on the title allows two to four words, so "for one or two sessions" has to go in the message.</p></div>
+    <div class="fact"><h3>One reason is worded oddly on purpose</h3><p class="why">"Finished for the first time at this weight" was refused by the model's safety filter every time. "The first session with every set finished" passes.</p></div>
+  </div>
+  <p class="muted">What the model adds today is small: it joins the detail and the reason into one sentence and varies the wording a little. Messages can still run past twenty words or miss a full stop.</p>
+</section>
+
+<section>
+  <p class="eyebrow">On screen</p>
+  <h2>How the card builds in front of you</h2>
+  <div class="rule-box">
+    <div class="timeline">
+      <div class="step"><div class="when" style="color:var(--words)">Stats tab opens</div><div><code>CoachAI</code> loads the model ahead of time, so the first words of a card come sooner.</div></div>
+      <div class="step"><div class="when" style="color:var(--rules)">Progress screen opens</div><div>History and personal best appear at once. The rules pick the suggestion straight away.</div></div>
+      <div class="step"><div class="when" style="color:var(--card)">About two seconds</div><div>The card appears with the first words of its title, then the message grows a few words at a time. New words fade in and the content below slides down.</div></div>
+      <div class="step"><div class="when" style="color:var(--history)">If it goes wrong</div><div>No model on the device, a refusal, or a broken answer: the card shows the hand-written text. Leaving the screen stops the model.</div></div>
+      <div class="step"><div class="when" style="color:var(--words)">If there's no model</div><div>A small gray line sits above the card, such as "Turn on Apple Intelligence for suggestions written for you. <u>More info</u>". A tap opens an alert that says what to do, with a Settings button. An iPhone that can't run Apple Intelligence gets the line and an alert with only "OK".</div></div>
+    </div>
+  </div>
+  <p class="muted">Nothing is saved. The model writes the card again on every visit, so the wording can differ from one visit to the next. That was a deliberate choice, to see the card being written.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Where things live</p>
+  <h2>Folder map</h2>
+  <div class="table">
+    <table>
+      <tr><th>Place</th><th>What it holds</th></tr>
+      <tr><td><span class="dot" style="background:var(--rules)"></span><code>Coaching/CoachEngine</code></td><td>Asks the rules in order; the three-session minimum.</td></tr>
+      <tr><td><span class="dot" style="background:var(--rules)"></span><code>Coaching/Rules/</code></td><td>One file per rule, each with its when, why and source.</td></tr>
+      <tr><td><span class="dot" style="background:var(--rules)"></span><code>Coaching/Helpers/</code></td><td>What "clean", "missed set" and "top reps" mean in code.</td></tr>
+      <tr><td><span class="dot" style="background:var(--rules)"></span><code>Coaching/CoachingRules.md</code></td><td>The rules written out in words, with the research. Ships in the app for the Analysis screen.</td></tr>
+      <tr><td><span class="dot" style="background:var(--words)"></span><code>Coaching/CoachAI</code></td><td>The only door to the language model.</td></tr>
+      <tr><td><span class="dot" style="background:var(--words)"></span><code>Coaching/Writing/</code></td><td>The instructions and the three lines (<code>SuggestionPrompt</code>), and the shape the model fills (<code>SuggestionCopy</code>).</td></tr>
+      <tr><td><span class="dot" style="background:var(--words)"></span><code>Coaching/SuggestionWording</code></td><td>The hand-written text for each suggestion: the fallback.</td></tr>
+      <tr><td><span class="dot" style="background:var(--card)"></span><code>Modules/Stats/ExerciseProgress/</code></td><td>The progress screen; its screen model starts the card.</td></tr>
+      <tr><td><span class="dot" style="background:var(--card)"></span><code>DesignSystem … SuggestionCard</code></td><td>The gold card itself, with its text animation.</td></tr>
+      <tr><td><span class="dot" style="background:var(--card)"></span><code>ExerciseProgress/Helpers/ModelHintItem</code></td><td>The words of the small note and its alert, one set per reason the model is missing.</td></tr>
+      <tr><td><span class="dot" style="background:var(--card)"></span><code>DesignSystem … InfoNote</code></td><td>The small gray line with an underlined link.</td></tr>
+      <tr><td><span class="dot" style="background:var(--cloud)"></span><code>Modules/Stats/CoachAnalysis/</code></td><td>The "Coming soon" screen the card opens.</td></tr>
+      <tr><td><span class="dot" style="background:var(--words)"></span><code>Scripts/suggestion-wording/</code></td><td>The script that writes all eight cards from the terminal.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Changing the wording</p>
+  <h2>Test a prompt change without Xcode</h2>
+  <p>Edit the lines in <code>SuggestionPrompt.swift</code>, then run this from the FitTap folder. It writes all eight suggestions and prints them together. Add numbers to run only some, such as <code>0 5</code>.</p>
+  <div class="cmd">python3 Scripts/suggestion-wording/run.py</div>
+  <div class="rule-box">
+    <ul>
+      <li>Run it three or four times. The model's answers change between runs, and a fault may show up one time in four.</li>
+      <li>The script reads the Swift file, so there is nothing to copy across. The one exception is <code>schema.json</code> next to it, which mirrors <code>SuggestionCopy.swift</code>.</li>
+      <li>The Xcode playground runs the same cases, but it crashes when the model refuses one. That crash is inside Apple's framework; use the script.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">What's left</p>
+  <h2>Not built yet</h2>
+  <ul class="todo">
+    <li class="next"><span>Analysis screen: the cloud model explains the exercise in depth, including what adding reps or weight does for growth and strength</span><span class="tag">Next big piece</span></li>
+    <li><span>"Try heavier" and "Add weight" both get the title "Go up one step"</span><span class="tag">Open question</span></li>
+    <li><span>Rules with no card yet: stalled at a weight, lighter and clean, back after a break, sessions with mixed weights</span><span class="tag">Parked</span></li>
+    <li><span>A check on how big a weight jump is</span><span class="tag">Parked</span></li>
+    <li><span>More than one tone of voice</span><span class="tag">Parked</span></li>
+    <li><span>A saved set of test cases that scores the wording automatically</span><span class="tag">Parked</span></li>
+  </ul>
+</section>
+
+<footer>Last updated 2026-11-17. Summarises the code in <code>FitTap/Coaching/</code> and the rules in <code>CoachingRules.md</code>; when they disagree, the code and that file win.</footer>
+
+</div>

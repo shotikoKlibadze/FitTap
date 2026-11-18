@@ -91,22 +91,24 @@ public struct AddButton: View {
                     .foregroundStyle(FTColors.textPrimary)
             }
         case .row:
-            HStack(spacing: 12) {
-                plusCircle(diameter: 34, glyph: 16)
-                Text(title)
-                    .font(FTFonts.headlineBold)
-                    .foregroundStyle(FTColors.textPrimary)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
-            }
             // A session card is a bold title line over a footnote line; the
-            // same two lines, unseen, give the row its height at any text size.
-            .background {
+            // same two lines, unseen, give the row its height at any text
+            // size. In the ZStack, not a background — a background never
+            // sizes the view it's behind.
+            ZStack {
                 VStack(spacing: 9) {
                     Text(verbatim: "Title").font(FTFonts.headlineBold)
                     Text(verbatim: "Stats").font(FTFonts.footnote)
                 }
                 .hidden()
+                HStack(spacing: 12) {
+                    plusCircle(diameter: 34, glyph: 16)
+                    Text(title)
+                        .font(FTFonts.headlineBold)
+                        .foregroundStyle(FTColors.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                }
             }
         }
     }

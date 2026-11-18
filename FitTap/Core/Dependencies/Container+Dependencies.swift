@@ -39,4 +39,12 @@ extension Container {
         self { MainActor.assumeIsolated { StatsStore() } }
             .singleton
     }
+
+    /// The language model behind the coach's words. One owner, so the
+    /// model it loads ahead of time is there for whichever screen asks next.
+    @MainActor
+    var coachAI: Factory<CoachAI> {
+        self { MainActor.assumeIsolated { CoachAI() } }
+            .singleton
+    }
 }

@@ -57,7 +57,9 @@ struct WorkoutView: View {
     let onTapSave: () -> Void
     let onTapStart: () -> Void
     let onTapPlanDay: () -> Void
-    /// Delete beside Save while editing.
+    /// Delete beside Save while editing an existing workout; a new one has
+    /// nothing to delete.
+    let showsDeleteButton: Bool
     let onTapDelete: () -> Void
     let onSavePlan: () -> Void
 
@@ -152,8 +154,8 @@ struct WorkoutView: View {
                         }
                     }
                 }
-                // Editing, Delete sits beside Save — always available.
-                if isEditing {
+                // Editing an existing workout, Delete sits beside Save.
+                if isEditing, showsDeleteButton {
                     GlassPillButton(title: "Delete", style: .destructive, action: onTapDelete)
                         .frame(width: deleteButtonWidth)
                         .transition(.opacity)
@@ -451,7 +453,7 @@ private struct WorkoutViewPreviewHost: View {
                     WorkoutSummaryStrip.Stat(value: "~55", label: "minutes"),
                 ],
                 lastDoneText: "Last done Monday, Oct 26",
-                saveTitle: "Save workout",
+                saveTitle: "Done",
                 canSave: !exercises.isEmpty,
                 onTapAddExercise: addNextExercise,
                 onTapReps: { _, _ in },
@@ -462,6 +464,7 @@ private struct WorkoutViewPreviewHost: View {
                 onTapSave: { modeIndex = 0 },
                 onTapStart: {},
                 onTapPlanDay: {},
+                showsDeleteButton: true,
                 onTapDelete: {},
                 onSavePlan: { isPlanning = false },
             )

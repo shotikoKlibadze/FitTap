@@ -107,6 +107,22 @@ public enum FTColors {
             : UIColor(red: 196 / 255, green: 64 / 255, blue: 70 / 255, alpha: 1)
     })
 
+    /// Faint red fill under a `redAccent` outline: something that went
+    /// wrong, drawn hollow so it doesn't shout.
+    /// Used for: a session with a failed set in the progress chart.
+    public static let redAccentSurface = redAccent.opacity(0.16)
+
+    /// Blue — a personal best. The one colour on a progress screen that is
+    /// neither effort (green, yellow, red) nor the coach (gold), so a best
+    /// can't be mistaken for either.
+    /// Used for: the personal-best number above the progress chart.
+    /// rgb(120, 166, 222) dark / rgb(52, 108, 186) light.
+    public static let blue = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 120 / 255, green: 166 / 255, blue: 222 / 255, alpha: 1)
+            : UIColor(red: 52 / 255, green: 108 / 255, blue: 186 / 255, alpha: 1)
+    })
+
     /// Yellow that works as a fill. In light mode `yellow` is a text colour
     /// and turns orange when filled; this is a cleaner gold.
     /// Used for: the Medium option on the "How did it feel?" strip.
@@ -165,6 +181,17 @@ public enum FTColors {
     /// Used for: the suggestion (magic wand) button on each exercise card —
     /// its glyph and ring.
     public static let aiGold = FTCoreColors.aiGold
+
+    /// A faint wash of `textPrimary`: the shape of a title that isn't
+    /// here yet. The same colour as the text it stands for, light enough
+    /// to read as "still coming".
+    /// Used for: the title bar of a loading suggestion card.
+    public static let textPrimaryPlaceholder = textPrimary.opacity(0.14)
+
+    /// A faint wash of `textSecondary`: the shape of body text that isn't
+    /// here yet.
+    /// Used for: the message bars of a loading suggestion card.
+    public static let textSecondaryPlaceholder = textSecondary.opacity(0.18)
 
     /// Fill behind `aiGold` glyphs. On light grounds a gray fill dulls the
     /// gold to olive; a warm cream lets it read as metal.
@@ -289,10 +316,14 @@ private let ftColorSwatches: [FTColorSwatch] = [
     FTColorSwatch(name: "redAccent", color: FTColors.redAccent),
     FTColorSwatch(name: "yellowFill", color: FTColors.yellowFill),
     FTColorSwatch(name: "textOnAccent", color: FTColors.textOnAccent),
+    FTColorSwatch(name: "redAccentSurface", color: FTColors.redAccentSurface),
+    FTColorSwatch(name: "blue", color: FTColors.blue),
     FTColorSwatch(name: "yellow", color: FTColors.yellow),
     FTColorSwatch(name: "yellowSurface", color: FTColors.yellowSurface),
     FTColorSwatch(name: "aiGold", color: FTColors.aiGold),
     FTColorSwatch(name: "aiGoldSurface", color: FTColors.aiGoldSurface),
+    FTColorSwatch(name: "textPrimaryPlaceholder", color: FTColors.textPrimaryPlaceholder),
+    FTColorSwatch(name: "textSecondaryPlaceholder", color: FTColors.textSecondaryPlaceholder),
     FTColorSwatch(name: "divider", color: FTColors.divider),
     FTColorSwatch(name: "separator", color: FTColors.separator),
     FTColorSwatch(name: "elevatedSurfaceTop", color: FTColors.elevatedSurfaceTop),
